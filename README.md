@@ -29,3 +29,21 @@
     curl http://localhost:8000/health
 * Swagger
     http://localhost:8000/docs
+
+## DB の作り直し
+
+データをすべて削除して初期状態からやり直す場合は、以下を実行してください。
+```
+docker compose down -v
+docker compose up -d db
+docker compose run --rm backend alembic -c db/alembic.ini upgrade head
+docker compose up -d backend
+```
+
+## モデル変更後に migration を追加する場合
+
+スキーマ変更を行った場合のみ、新しい migration を作成します。
+```
+docker compose run --rm backend alembic -c db/alembic.ini revision --autogenerate -m "describe your change"
+docker compose run --rm backend alembic -c db/alembic.ini upgrade head
+```
