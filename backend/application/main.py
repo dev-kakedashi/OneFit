@@ -1,3 +1,4 @@
+from application.api.routes.meal_routes import router as meal_router
 from application.api.routes.user_routes import router as user_router
 from fastapi import FastAPI
 
@@ -8,6 +9,7 @@ app = FastAPI(
 )
 
 app.include_router(user_router)
+app.include_router(meal_router)
 
 
 @app.get("/health")
