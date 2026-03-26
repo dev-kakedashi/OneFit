@@ -11,3 +11,21 @@
 * トレーニング記録の登録
 * 1日のカロリー収支の算出
 * ダッシュボードでの状態確認
+
+## backend 実装の初回起動
+
+1. Docker イメージをビルド
+    docker compose build backend
+2. DB を起動
+    docker compose up -d db
+3. マイグレーションを適用
+    docker compose run --rm backend alembic -c db/alembic.ini upgrade head
+4. バックエンドを起動
+    docker compose up -d backend
+
+## 動作確認
+
+* ヘルスチェック
+    curl http://localhost:8000/health
+* Swagger
+    http://localhost:8000/docs
