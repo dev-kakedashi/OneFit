@@ -8,6 +8,8 @@ services:
       - ./backend:/app
     env_file:
       - .env
+    environment:
+      TZ: Asia/Tokyo
     depends_on:
       - db
 
@@ -15,6 +17,7 @@ services:
     image: mysql:8.0
     container_name: bodymake_db
     environment:
+      TZ: Asia/Tokyo
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: bodymake
       MYSQL_USER: appuser
