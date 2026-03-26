@@ -1,3 +1,4 @@
+from application.api.routes.user_routes import router as user_router
 from fastapi import FastAPI
 
 app = FastAPI(
@@ -5,6 +6,8 @@ app = FastAPI(
     description="ボディメイク管理アプリのAPI",
     version="0.1.0",
 )
+
+app.include_router(user_router)
 
 
 @app.get("/health")
