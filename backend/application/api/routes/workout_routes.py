@@ -2,7 +2,7 @@ from datetime import date
 
 from application.api.controllers.workout_controller import WorkoutController
 from db.session import get_db
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Path, Query, status
 from schemas.request.workout_request import WorkoutCreateRequest, WorkoutUpdateRequest
 from schemas.response.workout_response import WorkoutResponse
 from sqlalchemy.orm import Session
@@ -36,20 +36,16 @@ def create_workout_log(
 
 @router.put("/workout-logs/{workout_id}", response_model=WorkoutResponse)
 def update_workout_log(
-    workout_id: int,
-    request: WorkoutUpdateRequest,
+    workout_id: int = Path(..., gt=0),
+    request: WorkoutUpdateRequest = ...,
     db: Session = Depends(get_db),
 ) -> WorkoutResponse:
-    """トレーニング記録を更新する。"""
-
     return WorkoutController.update_workout_log(db, workout_id, request)
 
 
 @router.delete("/workout-logs/{workout_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_workout_log(
-    workout_id: int,
+    workout_id: int = Path(..., gt=0),
     db: Session = Depends(get_db),
 ) -> None:
-    """トレーニング記録を削除する。"""
-
     WorkoutController.delete_workout_log(db, workout_id)
