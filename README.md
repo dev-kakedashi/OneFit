@@ -15,20 +15,45 @@
 ## backend 実装の初回起動
 
 1. Docker イメージをビルド
+    ```
     docker compose build backend
+    ```
 2. DB を起動
+    ```
     docker compose up -d db
+    ```
 3. マイグレーションを適用
+    ```
     docker compose run --rm backend alembic -c db/alembic.ini upgrade head
+    ```
 4. バックエンドを起動
+    ```
     docker compose up -d backend
+    ```
+
+## backend 実装の初回起動後
+
+1. バックエンドを起動
+    ```
+    docker compose down
+    ```
+2. バックエンドを停止
+    ```
+    docker compose up -d
+    ```
 
 ## 動作確認
 
 * ヘルスチェック
+    ```
     curl http://localhost:8000/health
+    ```
+    レスポンス : `{"status": "ok"}`  
+    `/health` は DB 接続確認まではしていないので、「アプリが起動しているか」の確認用です。  
 * Swagger
+    ```
     http://localhost:8000/docs
+    ```
 
 ## DB の作り直し
 
@@ -47,3 +72,16 @@ docker compose up -d backend
 docker compose run --rm backend alembic -c db/alembic.ini revision --autogenerate -m "describe your change"
 docker compose run --rm backend alembic -c db/alembic.ini upgrade head
 ```
+
+## コミットルール
+
+|type|説明|
+|-|-|
+|feat|新機能追加|
+|fix|バグ修正|
+|docs|ドキュメント修正・追加|
+|style|コードの意味が変わらない修正（フォーマット、セミコロンなど）|
+|refactor|リファクタリング（機能変更なし）|
+|perf|パフォーマンス改善|
+|test|テスト関連|
+|chore|ビルド/CI/依存関係などの環境系|
