@@ -1,0 +1,80 @@
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class ErrorDefinition:
+    code: str
+    message: str
+
+
+class CommonErrors:
+    INVALID_REQUEST = ErrorDefinition("COMM-V-0001", "INVALID_REQUEST")
+    INTERNAL_SERVER_ERROR = ErrorDefinition("COMM-C-0001", "INTERNAL_SERVER_ERROR")
+
+
+class ProfileErrors:
+    FETCH_FAILED = ErrorDefinition("PROF-S-0001", "PROFILE_FETCH_FAILED")
+    DB_FETCH_ERROR = ErrorDefinition("PROF-R-0001", "DB_ERROR")
+    INVALID_HEIGHT = ErrorDefinition("PROF-V-0001", "INVALID_HEIGHT")
+    INVALID_WEIGHT = ErrorDefinition("PROF-V-0002", "INVALID_WEIGHT")
+    INVALID_AGE = ErrorDefinition("PROF-V-0003", "INVALID_AGE")
+    INVALID_GENDER = ErrorDefinition("PROF-V-0004", "INVALID_GENDER")
+    INVALID_ACTIVITY_LEVEL = ErrorDefinition("PROF-V-0005", "INVALID_ACTIVITY_LEVEL")
+    SAVE_FAILED = ErrorDefinition("PROF-S-0002", "PROFILE_SAVE_FAILED")
+    DB_SAVE_ERROR = ErrorDefinition("PROF-R-0002", "DB_ERROR")
+
+
+class MealErrors:
+    INVALID_DATE = ErrorDefinition("MEAL-A-0001", "INVALID_DATE")
+    FETCH_FAILED = ErrorDefinition("MEAL-S-0001", "MEAL_FETCH_FAILED")
+    DB_FETCH_ERROR = ErrorDefinition("MEAL-R-0001", "DB_ERROR")
+    INVALID_MEAL_NAME = ErrorDefinition("MEAL-V-0001", "INVALID_MEAL_NAME")
+    INVALID_CALORIES = ErrorDefinition("MEAL-V-0002", "INVALID_CALORIES")
+    INVALID_EATEN_AT = ErrorDefinition("MEAL-V-0003", "INVALID_EATEN_AT")
+    SAVE_FAILED = ErrorDefinition("MEAL-S-0002", "MEAL_SAVE_FAILED")
+    DB_SAVE_ERROR = ErrorDefinition("MEAL-R-0002", "DB_ERROR")
+    INVALID_ID_FOR_UPDATE = ErrorDefinition("MEAL-A-0002", "INVALID_ID")
+    NOT_FOUND_FOR_UPDATE = ErrorDefinition("MEAL-S-0003", "MEAL_NOT_FOUND")
+    INVALID_MEAL_NAME_FOR_UPDATE = ErrorDefinition("MEAL-V-0004", "INVALID_MEAL_NAME")
+    INVALID_CALORIES_FOR_UPDATE = ErrorDefinition("MEAL-V-0005", "INVALID_CALORIES")
+    INVALID_EATEN_AT_FOR_UPDATE = ErrorDefinition("MEAL-V-0006", "INVALID_EATEN_AT")
+    UPDATE_FAILED = ErrorDefinition("MEAL-S-0004", "MEAL_UPDATE_FAILED")
+    DB_UPDATE_ERROR = ErrorDefinition("MEAL-R-0003", "DB_ERROR")
+    INVALID_ID_FOR_DELETE = ErrorDefinition("MEAL-A-0003", "INVALID_ID")
+    NOT_FOUND_FOR_DELETE = ErrorDefinition("MEAL-S-0005", "MEAL_NOT_FOUND")
+    DELETE_FAILED = ErrorDefinition("MEAL-S-0006", "MEAL_DELETE_FAILED")
+    DB_DELETE_ERROR = ErrorDefinition("MEAL-R-0004", "DB_ERROR")
+
+
+class WorkoutErrors:
+    INVALID_DATE = ErrorDefinition("WORK-A-0001", "INVALID_DATE")
+    FETCH_FAILED = ErrorDefinition("WORK-S-0001", "WORKOUT_FETCH_FAILED")
+    DB_FETCH_ERROR = ErrorDefinition("WORK-R-0001", "DB_ERROR")
+    INVALID_WORKOUT_NAME = ErrorDefinition("WORK-V-0001", "INVALID_WORKOUT_NAME")
+    INVALID_BURNED_CALORIES = ErrorDefinition("WORK-V-0002", "INVALID_BURNED_CALORIES")
+    INVALID_WORKED_OUT_AT = ErrorDefinition("WORK-V-0003", "INVALID_WORKED_OUT_AT")
+    SAVE_FAILED = ErrorDefinition("WORK-S-0002", "WORKOUT_SAVE_FAILED")
+    DB_SAVE_ERROR = ErrorDefinition("WORK-R-0002", "DB_ERROR")
+    INVALID_ID_FOR_UPDATE = ErrorDefinition("WORK-A-0002", "INVALID_ID")
+    NOT_FOUND_FOR_UPDATE = ErrorDefinition("WORK-S-0003", "WORKOUT_NOT_FOUND")
+    INVALID_WORKOUT_NAME_FOR_UPDATE = ErrorDefinition(
+        "WORK-V-0004", "INVALID_WORKOUT_NAME"
+    )
+    INVALID_BURNED_CALORIES_FOR_UPDATE = ErrorDefinition(
+        "WORK-V-0005", "INVALID_BURNED_CALORIES"
+    )
+    INVALID_WORKED_OUT_AT_FOR_UPDATE = ErrorDefinition(
+        "WORK-V-0006", "INVALID_WORKED_OUT_AT"
+    )
+    UPDATE_FAILED = ErrorDefinition("WORK-S-0004", "WORKOUT_UPDATE_FAILED")
+    DB_UPDATE_ERROR = ErrorDefinition("WORK-R-0003", "DB_ERROR")
+    INVALID_ID_FOR_DELETE = ErrorDefinition("WORK-A-0003", "INVALID_ID")
+    NOT_FOUND_FOR_DELETE = ErrorDefinition("WORK-S-0005", "WORKOUT_NOT_FOUND")
+    DELETE_FAILED = ErrorDefinition("WORK-S-0006", "WORKOUT_DELETE_FAILED")
+    DB_DELETE_ERROR = ErrorDefinition("WORK-R-0004", "DB_ERROR")
+
+
+class DashboardErrors:
+    INVALID_DATE = ErrorDefinition("DASH-A-0001", "INVALID_DATE")
+    FETCH_FAILED = ErrorDefinition("DASH-S-0001", "SUMMARY_FETCH_FAILED")
+    DB_FETCH_ERROR = ErrorDefinition("DASH-R-0001", "DB_ERROR")
