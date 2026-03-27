@@ -2,7 +2,7 @@ from datetime import date
 
 from application.api.controllers.meal_controller import MealController
 from db.session import get_db
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Path, Query, status
 from schemas.request.meal_request import MealCreateRequest, MealUpdateRequest
 from schemas.response.meal_response import MealResponse
 from sqlalchemy.orm import Session
@@ -36,20 +36,16 @@ def create_meal_log(
 
 @router.put("/meal-logs/{meal_id}", response_model=MealResponse)
 def update_meal_log(
-    meal_id: int,
-    request: MealUpdateRequest,
+    meal_id: int = Path(..., gt=0),
+    request: MealUpdateRequest = ...,
     db: Session = Depends(get_db),
 ) -> MealResponse:
-    """食事記録を更新する。"""
-
     return MealController.update_meal_log(db, meal_id, request)
 
 
 @router.delete("/meal-logs/{meal_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_meal_log(
-    meal_id: int,
+    meal_id: int = Path(..., gt=0),
     db: Session = Depends(get_db),
 ) -> None:
-    """食事記録を削除する。"""
-
     MealController.delete_meal_log(db, meal_id)
