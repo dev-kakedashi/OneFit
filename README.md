@@ -14,31 +14,35 @@
 
 ## backend 実装の初回起動
 
-1. Docker イメージをビルド
+1. 環境変数ファイルを作成
+    ```bash
+    cp .env.example .env
     ```
+2. Docker イメージをビルド
+    ```bash
     docker compose build backend
     ```
-2. DB を起動
-    ```
+3. DB を起動
+    ```bash
     docker compose up -d db
     ```
-3. マイグレーションを適用
-    ```
+4. マイグレーションを適用
+    ```bash
     docker compose run --rm backend alembic -c db/alembic.ini upgrade head
     ```
-4. バックエンドを起動
-    ```
+5. バックエンドを起動
+    ```bash
     docker compose up -d backend
     ```
 
 ## backend 実装の初回起動後
 
-1. バックエンドを起動
-    ```
+1. バックエンドを停止
+    ```bash
     docker compose down
     ```
-2. バックエンドを停止
-    ```
+2. バックエンドを起動
+    ```bash
     docker compose up -d
     ```
 

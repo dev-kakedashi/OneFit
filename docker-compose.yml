@@ -9,7 +9,7 @@ services:
     env_file:
       - .env
     environment:
-      TZ: Asia/Tokyo
+      TZ: ${TZ}
     depends_on:
       db:
         condition: service_healthy
@@ -17,18 +17,20 @@ services:
   db:
     image: mysql:8.0
     container_name: bodymake_db
+    env_file:
+      - .env
     environment:
-      TZ: Asia/Tokyo
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: bodymake
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: apppass
+      TZ: ${TZ}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 3s
       retries: 20
