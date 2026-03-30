@@ -1,3 +1,5 @@
+import os
+
 from application.api.routes.dashboard_routes import router as dashboard_router
 from application.api.routes.meal_routes import router as meal_router
 from application.api.routes.user_routes import router as user_router
@@ -18,6 +20,7 @@ from common.errors.exceptions import (
 from common.logger import AppLogger
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from schemas.response.error_response import ErrorResponse
 
@@ -26,6 +29,31 @@ app = FastAPI(
     description="ボディメイク管理アプリのAPI",
     version="0.1.0",
 )
+
+frontend_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "FRONTEND_ORIGINS",
+        ",".join(
+            [
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+            ]
+        ),
+    ).split(",")
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=frontend_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 logger = AppLogger()
 
