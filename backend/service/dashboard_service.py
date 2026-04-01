@@ -8,6 +8,8 @@ from repository.workout_repository import WorkoutRepository
 from schemas.response.dashboard_response import (
     DailySummaryResponse,
     DashboardDailySummaryResponse,
+    DashboardMonthlyMarkerResponse,
+    DashboardMonthlyMarkersResponse,
 )
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -62,6 +64,61 @@ class DashboardService:
                 )
 
             return DashboardDailySummaryResponse(summary=summary)
+        except AppException:
+            raise
+        except SQLAlchemyError as error:
+            raise RepositoryException(
+                DashboardErrors.DB_FETCH_ERROR, error=error
+            ) from error
+        except Exception as error:
+            raise ServiceException(DashboardErrors.FETCH_FAILED, error=error) from error
+
+    @staticmethod
+    def get_monthly_markers(
+        db: Session,
+        target_month: date,
+    ) -> DashboardMonthlyMarkersResponse:
+        """指定月の記録マーカー一覧を返す。
+
+        Args:
+            db: DBセッション。
+            target_month: 月判定に使う任意の日付。この年月を集計対象とする。
+
+        Returns:
+            カレンダー表示用の月次マーカー一覧。
+
+        Raises:
+            RepositoryException: DB取得処理で障害が発生した場合。
+            ServiceException: 想定外のサービス層エラーが発生した場合。
+        """
+        try:
+            month_start = date(target_month.year, target_month.month, 1)
+            next_month_start = (
+                date(target_month.year + 1, 1, 1)
+                if target_month.month == 12
+                else date(target_month.year, target_month.month + 1, 1)
+            )
+            start_datetime = datetime.combine(month_start, time.min)
+            end_datetime = datetime.combine(next_month_start, time.min)
+
+            # 月内の全記録を一度に取得し、日単位の有無へ畳み込んでカレンダーマーカーに使う。
+            meals = MealRepository.find_in_range(db, start_datetime, end_datetime)
+            workouts = WorkoutRepository.find_in_range(db, start_datetime, end_datetime)
+
+            meal_dates = {meal.eaten_at.date() for meal in meals}
+            workout_dates = {workout.worked_out_at.date() for workout in workouts}
+            marker_dates = sorted(meal_dates | workout_dates)
+
+            return DashboardMonthlyMarkersResponse(
+                markers=[
+                    DashboardMonthlyMarkerResponse(
+                        date=marker_date,
+                        has_meal=marker_date in meal_dates,
+                        has_workout=marker_date in workout_dates,
+                    )
+                    for marker_date in marker_dates
+                ]
+            )
         except AppException:
             raise
         except SQLAlchemyError as error:
