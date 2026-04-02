@@ -20,6 +20,7 @@ class ProfileErrors:
     INVALID_AGE = ErrorDefinition("PROF-V-0003", "INVALID_AGE")
     INVALID_GENDER = ErrorDefinition("PROF-V-0004", "INVALID_GENDER")
     INVALID_ACTIVITY_LEVEL = ErrorDefinition("PROF-V-0005", "INVALID_ACTIVITY_LEVEL")
+    INVALID_DAILY_WATER_GOAL = ErrorDefinition("PROF-V-0006", "INVALID_DAILY_WATER_GOAL")
     SAVE_FAILED = ErrorDefinition("PROF-S-0002", "PROFILE_SAVE_FAILED")
     DB_SAVE_ERROR = ErrorDefinition("PROF-R-0002", "DB_ERROR")
 
@@ -72,6 +73,30 @@ class WorkoutErrors:
     NOT_FOUND_FOR_DELETE = ErrorDefinition("WORK-S-0005", "WORKOUT_NOT_FOUND")
     DELETE_FAILED = ErrorDefinition("WORK-S-0006", "WORKOUT_DELETE_FAILED")
     DB_DELETE_ERROR = ErrorDefinition("WORK-R-0004", "DB_ERROR")
+
+
+class WaterErrors:
+    INVALID_DATE = ErrorDefinition("WATR-A-0001", "INVALID_DATE")
+    FETCH_FAILED = ErrorDefinition("WATR-S-0001", "WATER_LOG_FETCH_FAILED")
+    DB_FETCH_ERROR = ErrorDefinition("WATR-R-0001", "DB_ERROR")
+    INVALID_AMOUNT_ML = ErrorDefinition("WATR-V-0001", "INVALID_AMOUNT_ML")
+    INVALID_DRANK_AT = ErrorDefinition("WATR-V-0002", "INVALID_DRANK_AT")
+    SAVE_FAILED = ErrorDefinition("WATR-S-0002", "WATER_LOG_SAVE_FAILED")
+    DB_SAVE_ERROR = ErrorDefinition("WATR-R-0002", "DB_ERROR")
+    INVALID_ID_FOR_UPDATE = ErrorDefinition("WATR-A-0002", "INVALID_ID")
+    NOT_FOUND_FOR_UPDATE = ErrorDefinition("WATR-S-0003", "WATER_LOG_NOT_FOUND")
+    INVALID_AMOUNT_ML_FOR_UPDATE = ErrorDefinition(
+        "WATR-V-0003", "INVALID_AMOUNT_ML"
+    )
+    INVALID_DRANK_AT_FOR_UPDATE = ErrorDefinition(
+        "WATR-V-0004", "INVALID_DRANK_AT"
+    )
+    UPDATE_FAILED = ErrorDefinition("WATR-S-0004", "WATER_LOG_UPDATE_FAILED")
+    DB_UPDATE_ERROR = ErrorDefinition("WATR-R-0003", "DB_ERROR")
+    INVALID_ID_FOR_DELETE = ErrorDefinition("WATR-A-0003", "INVALID_ID")
+    NOT_FOUND_FOR_DELETE = ErrorDefinition("WATR-S-0005", "WATER_LOG_NOT_FOUND")
+    DELETE_FAILED = ErrorDefinition("WATR-S-0006", "WATER_LOG_DELETE_FAILED")
+    DB_DELETE_ERROR = ErrorDefinition("WATR-R-0004", "DB_ERROR")
 
 
 class DashboardErrors:
