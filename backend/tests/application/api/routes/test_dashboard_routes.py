@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from models.meal import Meal
+from models.water_log import WaterLog
 from models.workout import Workout
 
 
@@ -18,13 +19,16 @@ def test_get_daily_summary_returns_empty_values_when_no_data(client):
             "intake_calories": 0,
             "burned_calories": 0,
             "calorie_balance": None,
+            "target_water_intake_ml": None,
+            "water_intake_ml": 0,
+            "remaining_water_intake_ml": None,
             "profile_registered": False,
         }
     }
 
 
-def test_get_daily_summary_returns_profile_based_summary(client):
-    # プロフィール登録後は、目標カロリーと収支を含むサマリーを返すことを確認する。
+def test_get_daily_summary_returns_profile_based_summary(client, db_session):
+    # プロフィール登録後は、水分目標を含む日次サマリーを返すことを確認する。
     client.put(
         "/profile",
         json={
@@ -33,8 +37,27 @@ def test_get_daily_summary_returns_profile_based_summary(client):
             "age": 30,
             "gender": "male",
             "activity_level": "moderate",
+            "daily_water_goal_ml": 2000,
         },
     )
+
+    db_session.add_all(
+        [
+            WaterLog(
+                id=1,
+                amount_ml=300,
+                drank_at=datetime(2026, 3, 27, 8, 0, 0),
+                memo=None,
+            ),
+            WaterLog(
+                id=2,
+                amount_ml=500,
+                drank_at=datetime(2026, 3, 27, 13, 0, 0),
+                memo=None,
+            ),
+        ]
+    )
+    db_session.commit()
 
     response = client.get(
         "/dashboard/daily-summary",
@@ -48,6 +71,9 @@ def test_get_daily_summary_returns_profile_based_summary(client):
             "intake_calories": 0,
             "burned_calories": 0,
             "calorie_balance": -2636,
+            "target_water_intake_ml": 2000,
+            "water_intake_ml": 800,
+            "remaining_water_intake_ml": 1200,
             "profile_registered": True,
         }
     }
@@ -65,6 +91,7 @@ def test_get_daily_summary_returns_validation_error_for_invalid_date(client):
         "code": "DASH-A-0001",
         "message": "INVALID_DATE",
     }
+
 
 def test_get_monthly_markers_returns_dates_with_meal_and_workout_flags(
     client,
