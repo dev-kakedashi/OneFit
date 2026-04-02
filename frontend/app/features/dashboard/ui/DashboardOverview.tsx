@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import { toDateAtMidnight } from '../lib/calendar';
 import { type DashboardSummary } from '../types';
+import { DashboardHydrationCard } from './DashboardHydrationCard';
 
 type DashboardOverviewProps = {
   selectedDate: string;
@@ -42,19 +43,26 @@ export function DashboardOverview({
 
   const calorieGoal = summary.targetCalories ?? 0;
   const netCalories = summary.intakeCalories - summary.burnedCalories;
-  const remaining =
+  const remainingCalories =
     summary.calorieBalance === null ? 0 : -summary.calorieBalance;
   const progressPercentage =
     calorieGoal > 0 ? Math.round((netCalories / calorieGoal) * 100) : 0;
   const progressWidth =
     calorieGoal > 0 ? Math.min((netCalories / calorieGoal) * 100, 100) : 0;
 
+  const balanceDescription =
+    remainingCalories > 0
+      ? `あと${remainingCalories}kcal摂取できます`
+      : remainingCalories < 0
+        ? `${Math.abs(remainingCalories)}kcalオーバーです`
+        : '目標達成！';
+
   const renderBalanceIcon = (neutralClass = 'text-gray-600', size = 24) => {
-    if (remaining > 0) {
+    if (remainingCalories > 0) {
       return <TrendingDown className="text-green-600" size={size} />;
     }
 
-    if (remaining < 0) {
+    if (remainingCalories < 0) {
       return <TrendingUp className="text-red-600" size={size} />;
     }
 
@@ -62,11 +70,11 @@ export function DashboardOverview({
   };
 
   const getBalanceColor = (neutralClass = 'text-gray-600') => {
-    if (remaining > 0) {
+    if (remainingCalories > 0) {
       return 'text-green-600';
     }
 
-    if (remaining < 0) {
+    if (remainingCalories < 0) {
       return 'text-red-600';
     }
 
@@ -124,20 +132,22 @@ export function DashboardOverview({
             <div className="text-xs font-medium text-slate-300">収支</div>
             <div className="mt-2 flex items-center gap-2">
               {renderBalanceIcon('text-white', 22)}
-              <div className={`text-2xl font-semibold ${getBalanceColor('text-white')}`}>
-                {remaining > 0 ? '+' : ''}
-                {remaining}
+              <div
+                className={`text-2xl font-semibold ${getBalanceColor('text-white')}`}
+              >
+                {remainingCalories > 0 ? '+' : ''}
+                {remainingCalories}
                 <span className="ml-1 text-sm text-slate-300">kcal</span>
               </div>
             </div>
-            <p className="mt-2 text-sm text-slate-300">
-              {remaining > 0
-                ? `あと${remaining}kcal摂取できます`
-                : remaining < 0
-                  ? `${Math.abs(remaining)}kcalオーバーです`
-                  : '目標達成！'}
-            </p>
+            <p className="mt-2 text-sm text-slate-300">{balanceDescription}</p>
           </div>
+
+          <DashboardHydrationCard
+            waterIntakeMl={summary.waterIntakeMl}
+            targetWaterIntakeMl={summary.targetWaterIntakeMl}
+            remainingWaterIntakeMl={summary.remainingWaterIntakeMl}
+          />
         </div>
       </section>
 
@@ -172,18 +182,12 @@ export function DashboardOverview({
             <div className="flex items-center gap-2">
               {renderBalanceIcon()}
               <div className={`text-3xl font-bold ${getBalanceColor()}`}>
-                {remaining > 0 ? '+' : ''}
-                {remaining}
+                {remainingCalories > 0 ? '+' : ''}
+                {remainingCalories}
                 <span className="ml-1 text-lg text-gray-600">kcal</span>
               </div>
             </div>
-            <div className="mt-2 text-xs text-gray-500">
-              {remaining > 0
-                ? `あと${remaining}kcal摂取できます`
-                : remaining < 0
-                  ? `${Math.abs(remaining)}kcalオーバーです`
-                  : '目標達成！'}
-            </div>
+            <div className="mt-2 text-xs text-gray-500">{balanceDescription}</div>
           </div>
         </div>
 
@@ -204,7 +208,7 @@ export function DashboardOverview({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           <Link
             to="/meals"
             className="rounded-lg bg-orange-500 p-6 text-white transition-colors hover:bg-orange-600"
@@ -212,12 +216,21 @@ export function DashboardOverview({
             <h3 className="mb-2 text-xl font-semibold">食事を記録</h3>
             <p className="text-orange-100">日付ごとの食事を記録できます</p>
           </Link>
+
           <Link
             to="/workouts"
             className="rounded-lg bg-purple-500 p-6 text-white transition-colors hover:bg-purple-600"
           >
             <h3 className="mb-2 text-xl font-semibold">トレーニングを記録</h3>
             <p className="text-purple-100">日付ごとの運動を記録できます</p>
+          </Link>
+
+          <Link
+            to="/water-logs"
+            className="rounded-lg bg-cyan-500 p-6 text-white transition-colors hover:bg-cyan-600"
+          >
+            <h3 className="mb-2 text-xl font-semibold">水分を記録</h3>
+            <p className="text-cyan-100">飲んだ水分量を日付ごとに記録できます</p>
           </Link>
         </div>
       </div>

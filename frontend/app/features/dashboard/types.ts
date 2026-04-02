@@ -3,6 +3,9 @@ export interface DashboardSummary {
   intakeCalories: number;
   burnedCalories: number;
   calorieBalance: number | null;
+  targetWaterIntakeMl: number | null;
+  waterIntakeMl: number;
+  remainingWaterIntakeMl: number | null;
   profileRegistered: boolean;
 }
 
