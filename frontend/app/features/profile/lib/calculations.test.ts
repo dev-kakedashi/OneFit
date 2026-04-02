@@ -10,6 +10,7 @@ describe('profile calculations', () => {
       age: 30,
       gender: 'male',
       activityLevel: 'moderate',
+      dailyWaterGoalMl: null,
     };
 
     expect(calculateBMR(settings)).toBe(1701);
@@ -22,6 +23,7 @@ describe('profile calculations', () => {
       age: 30,
       gender: 'female',
       activityLevel: 'light',
+      dailyWaterGoalMl: null,
     };
 
     expect(calculateBMR(settings)).toBe(1384);
@@ -34,6 +36,7 @@ describe('profile calculations', () => {
       age: 30,
       gender: 'other',
       activityLevel: 'very_active',
+      dailyWaterGoalMl: null,
     };
 
     expect(calculateBMR(settings)).toBe(1471);
@@ -46,6 +49,7 @@ describe('profile calculations', () => {
       age: 30,
       gender: 'male',
       activityLevel: 'moderate',
+      dailyWaterGoalMl: null,
     };
 
     expect(calculateTDEE(settings)).toBe(2636);
