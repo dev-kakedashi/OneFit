@@ -20,13 +20,14 @@ def test_get_user_returns_none_when_not_registered():
 
 
 def test_upsert_user_creates_profile_with_calculated_values():
-    # 新規作成時に計算済みの基礎代謝と必須カロリーが保存データに含まれることを確認する。
+    # 新規作成時に計算済みの基礎代謝と必須カロリー、水分目標が保存データに含まれることを確認する。
     request = UserUpsertRequest(
         height=175,
         weight=70,
         age=30,
         gender=Gender.MALE,
         activity_level=ActivityLevel.MODERATE,
+        daily_water_goal_ml=2000,
     )
     saved_user = User(
         id=1,
@@ -37,6 +38,7 @@ def test_upsert_user_creates_profile_with_calculated_values():
         activity_level=ActivityLevel.MODERATE,
         basal_metabolism=1701,
         required_calories=2636,
+        daily_water_goal_ml=2000,
     )
 
     with (
@@ -51,8 +53,10 @@ def test_upsert_user_creates_profile_with_calculated_values():
     created_user = mock_create.call_args[0][1]
     assert created_user.basal_metabolism == 1701
     assert created_user.required_calories == 2636
+    assert created_user.daily_water_goal_ml == 2000
     assert result.id == 1
     assert result.gender == Gender.MALE
+    assert result.daily_water_goal_ml == 2000
 
 
 def test_get_user_raises_repository_exception_on_sqlalchemy_error():
@@ -76,6 +80,7 @@ def test_upsert_user_updates_existing_profile():
         age=28,
         gender=Gender.FEMALE,
         activity_level=ActivityLevel.LIGHT,
+        daily_water_goal_ml=1800,
     )
     existing_user = User(
         id=1,
@@ -86,6 +91,7 @@ def test_upsert_user_updates_existing_profile():
         activity_level=ActivityLevel.MODERATE,
         basal_metabolism=1701,
         required_calories=2636,
+        daily_water_goal_ml=2000,
     )
     updated_user = User(
         id=1,
@@ -96,11 +102,13 @@ def test_upsert_user_updates_existing_profile():
         activity_level=ActivityLevel.LIGHT,
         basal_metabolism=1355,
         required_calories=1863,
+        daily_water_goal_ml=1800,
     )
 
     with (
         patch(
-            "service.user_service.UserRepository.get_first", return_value=existing_user
+            "service.user_service.UserRepository.get_first",
+            return_value=existing_user,
         ),
         patch(
             "service.user_service.UserRepository.update",
@@ -112,8 +120,10 @@ def test_upsert_user_updates_existing_profile():
     update_data = mock_update.call_args[0][2]
     assert update_data["basal_metabolism"] == 1355
     assert update_data["required_calories"] == 1863
+    assert update_data["daily_water_goal_ml"] == 1800
     assert result.id == 1
     assert result.gender == Gender.FEMALE
+    assert result.daily_water_goal_ml == 1800
 
 
 def test_upsert_user_raises_repository_exception_on_sqlalchemy_error():
@@ -124,6 +134,7 @@ def test_upsert_user_raises_repository_exception_on_sqlalchemy_error():
         age=30,
         gender=Gender.MALE,
         activity_level=ActivityLevel.MODERATE,
+        daily_water_goal_ml=2000,
     )
 
     with patch(
@@ -145,6 +156,7 @@ def test_upsert_user_raises_service_exception_on_unexpected_error():
         age=30,
         gender=Gender.MALE,
         activity_level=ActivityLevel.MODERATE,
+        daily_water_goal_ml=2000,
     )
 
     with patch(
