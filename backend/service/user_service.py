@@ -107,4 +107,5 @@ class UserService:
             "activity_level": request.activity_level,
             "basal_metabolism": basal_metabolism,
             "required_calories": required_calories,
+            "daily_water_goal_ml": request.daily_water_goal_ml,
         }

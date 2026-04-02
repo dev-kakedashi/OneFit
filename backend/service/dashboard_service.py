@@ -4,6 +4,7 @@ from common.errors.errors import DashboardErrors
 from common.errors.exceptions import AppException, RepositoryException, ServiceException
 from repository.meal_repository import MealRepository
 from repository.user_repository import UserRepository
+from repository.water_repository import WaterRepository
 from repository.workout_repository import WorkoutRepository
 from schemas.response.dashboard_response import (
     DailySummaryResponse,
@@ -41,9 +42,11 @@ class DashboardService:
             user = UserRepository.get_first(db)
             meals = MealRepository.find_by_date(db, start_datetime)
             workouts = WorkoutRepository.find_by_date(db, start_datetime)
+            water_logs = WaterRepository.find_by_date(db, start_datetime)
 
             intake_calories = sum(meal.calories for meal in meals)
             burned_calories = sum(workout.burned_calories for workout in workouts)
+            water_intake_ml = sum(water_log.amount_ml for water_log in water_logs)
 
             if user is None:
                 summary = DailySummaryResponse(
@@ -51,15 +54,27 @@ class DashboardService:
                     intake_calories=intake_calories,
                     burned_calories=burned_calories,
                     calorie_balance=None,
+                    target_water_intake_ml=None,
+                    water_intake_ml=water_intake_ml,
+                    remaining_water_intake_ml=None,
                     profile_registered=False,
                 )
             else:
                 target_calories = int(user.required_calories)
+                target_water_intake_ml = user.daily_water_goal_ml
+                remaining_water_intake_ml = (
+                    None
+                    if target_water_intake_ml is None
+                    else max(target_water_intake_ml - water_intake_ml, 0)
+                )
                 summary = DailySummaryResponse(
                     target_calories=target_calories,
                     intake_calories=intake_calories,
                     burned_calories=burned_calories,
                     calorie_balance=intake_calories - burned_calories - target_calories,
+                    target_water_intake_ml=target_water_intake_ml,
+                    water_intake_ml=water_intake_ml,
+                    remaining_water_intake_ml=remaining_water_intake_ml,
                     profile_registered=True,
                 )
 

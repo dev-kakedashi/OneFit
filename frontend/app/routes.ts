@@ -4,6 +4,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { BodySettingsPage } from './pages/BodySettingsPage';
 import { MealLogPage } from './pages/MealLogPage';
 import { WorkoutLogPage } from './pages/WorkoutLogPage';
+import { WaterLogPage } from './pages/WaterLogPage';
 
 export const router = createBrowserRouter([
   {
@@ -14,6 +15,7 @@ export const router = createBrowserRouter([
       { path: 'body-settings', Component: BodySettingsPage },
       { path: 'meals', Component: MealLogPage },
       { path: 'workouts', Component: WorkoutLogPage },
+      { path: 'water-logs', Component: WaterLogPage },
     ],
   },
 ]);

@@ -8,6 +8,7 @@ from enums.activity_level import ActivityLevel
 from enums.gender import Gender
 from models.meal import Meal
 from models.user import User
+from models.water_log import WaterLog
 from models.workout import Workout
 from service.dashboard_service import DashboardService
 from sqlalchemy.exc import SQLAlchemyError
@@ -17,12 +18,13 @@ def test_get_daily_summary_returns_empty_summary_when_no_data():
     # 未登録状態でも空のサマリーを返すことを確認する。
     with (
         patch("service.dashboard_service.UserRepository.get_first", return_value=None),
+        patch("service.dashboard_service.MealRepository.find_by_date", return_value=[]),
         patch(
-            "service.dashboard_service.MealRepository.find_by_date",
+            "service.dashboard_service.WorkoutRepository.find_by_date",
             return_value=[],
         ),
         patch(
-            "service.dashboard_service.WorkoutRepository.find_by_date",
+            "service.dashboard_service.WaterRepository.find_by_date",
             return_value=[],
         ),
     ):
@@ -32,11 +34,14 @@ def test_get_daily_summary_returns_empty_summary_when_no_data():
     assert result.summary.intake_calories == 0
     assert result.summary.burned_calories == 0
     assert result.summary.calorie_balance is None
+    assert result.summary.target_water_intake_ml is None
+    assert result.summary.water_intake_ml == 0
+    assert result.summary.remaining_water_intake_ml is None
     assert result.summary.profile_registered is False
 
 
 def test_get_daily_summary_returns_aggregated_summary():
-    # 食事と運動の合計から日次サマリーを計算できることを確認する。
+    # 食事・運動・水分の合計から日次サマリーを計算できることを確認する。
     user = User(
         id=1,
         height=175,
@@ -46,6 +51,7 @@ def test_get_daily_summary_returns_aggregated_summary():
         activity_level=ActivityLevel.MODERATE,
         basal_metabolism=1701,
         required_calories=2636,
+        daily_water_goal_ml=2000,
     )
     meals = [
         Meal(
@@ -72,16 +78,31 @@ def test_get_daily_summary_returns_aggregated_summary():
             memo=None,
         ),
     ]
+    water_logs = [
+        WaterLog(
+            id=1,
+            amount_ml=300,
+            drank_at=datetime(2026, 3, 27, 8, 0, 0),
+            memo=None,
+        ),
+        WaterLog(
+            id=2,
+            amount_ml=700,
+            drank_at=datetime(2026, 3, 27, 13, 0, 0),
+            memo=None,
+        ),
+    ]
 
     with (
         patch("service.dashboard_service.UserRepository.get_first", return_value=user),
-        patch(
-            "service.dashboard_service.MealRepository.find_by_date",
-            return_value=meals,
-        ),
+        patch("service.dashboard_service.MealRepository.find_by_date", return_value=meals),
         patch(
             "service.dashboard_service.WorkoutRepository.find_by_date",
             return_value=workouts,
+        ),
+        patch(
+            "service.dashboard_service.WaterRepository.find_by_date",
+            return_value=water_logs,
         ),
     ):
         result = DashboardService.get_daily_summary(object(), date(2026, 3, 27))
@@ -90,6 +111,9 @@ def test_get_daily_summary_returns_aggregated_summary():
     assert result.summary.intake_calories == 1300
     assert result.summary.burned_calories == 300
     assert result.summary.calorie_balance == -1636
+    assert result.summary.target_water_intake_ml == 2000
+    assert result.summary.water_intake_ml == 1000
+    assert result.summary.remaining_water_intake_ml == 1000
     assert result.summary.profile_registered is True
 
 
@@ -121,13 +145,11 @@ def test_get_daily_summary_raises_service_exception_on_unexpected_error():
     assert exc_info.value.code == DashboardErrors.FETCH_FAILED.code
     assert exc_info.value.message == DashboardErrors.FETCH_FAILED.message
 
+
 def test_get_monthly_markers_returns_empty_markers_when_no_data():
     # 月内に記録がない場合は空のマーカー一覧を返すことを確認する。
     with (
-        patch(
-            "service.dashboard_service.MealRepository.find_in_range",
-            return_value=[],
-        ),
+        patch("service.dashboard_service.MealRepository.find_in_range", return_value=[]),
         patch(
             "service.dashboard_service.WorkoutRepository.find_in_range",
             return_value=[],
@@ -174,10 +196,7 @@ def test_get_monthly_markers_merges_meal_and_workout_dates():
     ]
 
     with (
-        patch(
-            "service.dashboard_service.MealRepository.find_in_range",
-            return_value=meals,
-        ),
+        patch("service.dashboard_service.MealRepository.find_in_range", return_value=meals),
         patch(
             "service.dashboard_service.WorkoutRepository.find_in_range",
             return_value=workouts,

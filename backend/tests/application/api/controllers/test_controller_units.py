@@ -27,6 +27,9 @@ def test_dashboard_controller_delegates_to_service():
             intake_calories=0,
             burned_calories=0,
             calorie_balance=None,
+            target_water_intake_ml=None,
+            water_intake_ml=0,
+            remaining_water_intake_ml=None,
             profile_registered=False,
         )
     )
