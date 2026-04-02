@@ -3,12 +3,7 @@ from datetime import datetime
 from db.base import Base
 from enums.activity_level import ActivityLevel
 from enums.gender import Gender
-from sqlalchemy import (
-    DateTime,
-    Enum,
-    Float,
-    Integer,
-)
+from sqlalchemy import DateTime, Enum, Float, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -44,6 +39,8 @@ class User(Base):
     basal_metabolism: Mapped[float] = mapped_column(Float, nullable=False)
 
     required_calories: Mapped[float] = mapped_column(Float, nullable=False)
+
+    daily_water_goal_ml: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,

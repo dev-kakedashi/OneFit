@@ -8,6 +8,7 @@ type UserResponse = {
   age: number;
   gender: Gender;
   activity_level: ActivityLevel;
+  daily_water_goal_ml: number | null;
 };
 
 type UserUpsertRequest = {
@@ -16,6 +17,7 @@ type UserUpsertRequest = {
   age: number;
   gender: Gender;
   activity_level: ActivityLevel;
+  daily_water_goal_ml: number | null;
 };
 
 // backend は snake_case、frontend は camelCase なので API 境界で相互変換する。
@@ -25,6 +27,7 @@ const mapUserResponse = (user: UserResponse): BodySettings => ({
   age: user.age,
   gender: user.gender,
   activityLevel: user.activity_level,
+  dailyWaterGoalMl: user.daily_water_goal_ml,
 });
 
 const mapUserRequest = (settings: BodySettings): UserUpsertRequest => ({
@@ -33,6 +36,7 @@ const mapUserRequest = (settings: BodySettings): UserUpsertRequest => ({
   age: settings.age,
   gender: settings.gender,
   activity_level: settings.activityLevel,
+  daily_water_goal_ml: settings.dailyWaterGoalMl,
 });
 
 export const getBodySettings = async (): Promise<BodySettings | null> => {

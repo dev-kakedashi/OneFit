@@ -9,3 +9,4 @@ class UserUpsertRequest(BaseModel):
     age: int = Field(..., gt=0)
     gender: Gender
     activity_level: ActivityLevel
+    daily_water_goal_ml: int | None = Field(None, gt=0)

@@ -13,4 +13,5 @@ export interface BodySettings {
   age: number;
   gender: Gender;
   activityLevel: ActivityLevel;
+  dailyWaterGoalMl: number | null;
 }
