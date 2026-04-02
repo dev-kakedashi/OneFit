@@ -1,5 +1,5 @@
 import { request } from '../../shared/api/client';
-import type { DashboardMonthlyMarker, DashboardSummary } from './types';
+import type { DashboardSummary } from './types';
 
 type DashboardResponse = {
   summary: {
@@ -9,14 +9,6 @@ type DashboardResponse = {
     calorie_balance: number | null;
     profile_registered: boolean;
   };
-};
-
-type DashboardMonthlyMarkersResponse = {
-  markers: {
-    date: string;
-    has_meal: boolean;
-    has_workout: boolean;
-  }[];
 };
 
 export const getDailySummary = async (
@@ -35,20 +27,4 @@ export const getDailySummary = async (
     calorieBalance: response.summary.calorie_balance,
     profileRegistered: response.summary.profile_registered,
   };
-};
-
-export const getMonthlyMarkers = async (
-  month: string,
-): Promise<DashboardMonthlyMarker[]> => {
-  const response = await request<DashboardMonthlyMarkersResponse>(
-    '/dashboard/monthly-markers',
-    undefined,
-    { month },
-  );
-
-  return response.markers.map((marker) => ({
-    date: marker.date,
-    hasMeal: marker.has_meal,
-    hasWorkout: marker.has_workout,
-  }));
 };

@@ -5,9 +5,3 @@ export interface DashboardSummary {
   calorieBalance: number | null;
   profileRegistered: boolean;
 }
-
-export interface DashboardMonthlyMarker {
-  date: string;
-  hasMeal: boolean;
-  hasWorkout: boolean;
-}

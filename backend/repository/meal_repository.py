@@ -20,19 +20,6 @@ class MealRepository:
     @staticmethod
     def find_by_id(db: Session, meal_id: int) -> Meal | None:
         return db.query(Meal).filter(Meal.id == meal_id).first()
-    
-    @staticmethod
-    def find_in_range(
-        db: Session,
-        start_datetime: datetime,
-        end_datetime: datetime,
-    ) -> list[Meal]:
-        return (
-            db.query(Meal)
-            .filter(Meal.eaten_at >= start_datetime, Meal.eaten_at < end_datetime)
-            .order_by(Meal.eaten_at.asc())
-            .all()
-        )
 
     @staticmethod
     def create(db: Session, meal: Meal) -> Meal:

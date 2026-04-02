@@ -59,7 +59,6 @@ logger = AppLogger()
 
 VALIDATION_ERROR_MAP = {
     ("GET", "/dashboard/daily-summary", "date"): DashboardErrors.INVALID_DATE,
-    ("GET", "/dashboard/monthly-markers", "month"): DashboardErrors.INVALID_DATE,
     ("GET", "/meal-logs", "date"): MealErrors.INVALID_DATE,
     ("GET", "/workout-logs", "date"): WorkoutErrors.INVALID_DATE,
     ("PUT", "/profile", "height"): ProfileErrors.INVALID_HEIGHT,

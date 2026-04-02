@@ -25,22 +25,6 @@ class WorkoutRepository:
         return db.query(Workout).filter(Workout.id == workout_id).first()
 
     @staticmethod
-    def find_in_range(
-        db: Session,
-        start_datetime: datetime,
-        end_datetime: datetime,
-    ) -> list[Workout]:
-        return (
-            db.query(Workout)
-            .filter(
-                Workout.worked_out_at >= start_datetime,
-                Workout.worked_out_at < end_datetime,
-            )
-            .order_by(Workout.worked_out_at.asc())
-            .all()
-        )
-
-    @staticmethod
     def create(db: Session, workout: Workout) -> Workout:
         db.add(workout)
         db.commit()
