@@ -5,6 +5,7 @@ from application.api.routes.meal_routes import router as meal_router
 from application.api.routes.user_routes import router as user_router
 from application.api.routes.water_routes import router as water_router
 from application.api.routes.workout_routes import router as workout_router
+from application.api.routes.body_make_plan_routes import router as body_make_plan_router
 from application.api.validation_error_map import VALIDATION_ERROR_MAP
 from common.errors.errors import CommonErrors
 from common.errors.exceptions import (
@@ -177,6 +178,7 @@ app.include_router(meal_router)
 app.include_router(workout_router)
 app.include_router(water_router)
 app.include_router(dashboard_router)
+app.include_router(body_make_plan_router)
 
 
 @app.get("/health")

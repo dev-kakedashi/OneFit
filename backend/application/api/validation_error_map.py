@@ -1,4 +1,11 @@
-from common.errors.errors import DashboardErrors, MealErrors, ProfileErrors, WaterErrors, WorkoutErrors
+from common.errors.errors import (
+    BodyMakeErrors,
+    DashboardErrors,
+    MealErrors,
+    ProfileErrors,
+    WaterErrors,
+    WorkoutErrors,
+)
 
 VALIDATION_ERROR_MAP = {
     ("GET", "/dashboard/daily-summary", "date"): DashboardErrors.INVALID_DATE,
@@ -12,6 +19,10 @@ VALIDATION_ERROR_MAP = {
     ("PUT", "/profile", "gender"): ProfileErrors.INVALID_GENDER,
     ("PUT", "/profile", "activity_level"): ProfileErrors.INVALID_ACTIVITY_LEVEL,
     ("PUT", "/profile", "daily_water_goal_ml"): ProfileErrors.INVALID_DAILY_WATER_GOAL,
+    ("PUT", "/body-make-plans", "course"): BodyMakeErrors.INVALID_GOAL_COURSE,
+    ("PUT", "/body-make-plans", "effective_from"): BodyMakeErrors.INVALID_EFFECTIVE_FROM,
+    ("PUT", "/body-make-plans", "target_weight_kg"): BodyMakeErrors.INVALID_TARGET_WEIGHT_KG,
+    ("PUT", "/body-make-plans", "duration_days"): BodyMakeErrors.INVALID_DURATION_DAYS,
     ("POST", "/meal-logs", "meal_name"): MealErrors.INVALID_MEAL_NAME,
     ("POST", "/meal-logs", "calories"): MealErrors.INVALID_CALORIES,
     ("POST", "/meal-logs", "eaten_at"): MealErrors.INVALID_EATEN_AT,
