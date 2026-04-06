@@ -2,6 +2,7 @@ from datetime import date, datetime, time
 
 from common.errors.errors import DashboardErrors
 from common.errors.exceptions import AppException, RepositoryException, ServiceException
+from repository.body_make_plan_repository import BodyMakePlanRepository
 from repository.meal_repository import MealRepository
 from repository.user_repository import UserRepository
 from repository.water_repository import WaterRepository
@@ -51,30 +52,61 @@ class DashboardService:
             if user is None:
                 summary = DailySummaryResponse(
                     target_calories=None,
+                    maintenance_calories=None,
+                    daily_calorie_adjustment=None,
                     intake_calories=intake_calories,
                     burned_calories=burned_calories,
                     calorie_balance=None,
                     target_water_intake_ml=None,
                     water_intake_ml=water_intake_ml,
                     remaining_water_intake_ml=None,
+                    course=None,
+                    target_end_date=None,
+                    target_weight_kg=None,
+                    memo=None,
+                    body_make_plan_registered=False,
                     profile_registered=False,
                 )
             else:
-                target_calories = int(user.required_calories)
+                plan = BodyMakePlanRepository.find_effective_on_date(
+                    db=db,
+                    user_id=user.id,
+                    target_date=target_date,
+                )
+
+                target_calories = (
+                    plan.target_calories if plan is not None else int(user.required_calories)
+                )
+                maintenance_calories = (
+                    plan.maintenance_calories
+                    if plan is not None
+                    else int(user.required_calories)
+                )
+                daily_calorie_adjustment = (
+                    plan.daily_calorie_adjustment if plan is not None else 0
+                )
                 target_water_intake_ml = user.daily_water_goal_ml
                 remaining_water_intake_ml = (
                     None
                     if target_water_intake_ml is None
                     else max(target_water_intake_ml - water_intake_ml, 0)
                 )
+
                 summary = DailySummaryResponse(
                     target_calories=target_calories,
+                    maintenance_calories=maintenance_calories,
+                    daily_calorie_adjustment=daily_calorie_adjustment,
                     intake_calories=intake_calories,
                     burned_calories=burned_calories,
                     calorie_balance=intake_calories - burned_calories - target_calories,
                     target_water_intake_ml=target_water_intake_ml,
                     water_intake_ml=water_intake_ml,
                     remaining_water_intake_ml=remaining_water_intake_ml,
+                    course=plan.course if plan is not None else None,
+                    target_end_date=plan.target_end_date if plan is not None else None,
+                    target_weight_kg=plan.target_weight_kg if plan is not None else None,
+                    memo=plan.memo if plan is not None else None,
+                    body_make_plan_registered=plan is not None,
                     profile_registered=True,
                 )
 
@@ -116,7 +148,6 @@ class DashboardService:
             start_datetime = datetime.combine(month_start, time.min)
             end_datetime = datetime.combine(next_month_start, time.min)
 
-            # 月内の全記録を一度に取得し、日単位の有無へ畳み込んでカレンダーマーカーに使う。
             meals = MealRepository.find_in_range(db, start_datetime, end_datetime)
             workouts = WorkoutRepository.find_in_range(db, start_datetime, end_datetime)
 
