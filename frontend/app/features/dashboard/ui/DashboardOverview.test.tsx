@@ -13,6 +13,7 @@ const createSummary = () => ({
   targetWaterIntakeMl: 2000,
   waterIntakeMl: 1200,
   remainingWaterIntakeMl: 800,
+  currentPlan: null,
   profileRegistered: true,
 });
 
