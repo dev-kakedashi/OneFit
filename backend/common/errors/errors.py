@@ -112,6 +112,9 @@ class BodyMakeErrors:
         "BDMK-V-0003", "INVALID_TARGET_WEIGHT_KG"
     )
     INVALID_GOAL_COURSE = ErrorDefinition("BDMK-V-0004", "INVALID_GOAL_COURSE")
+    TARGET_CALORIES_TOO_LOW = ErrorDefinition(
+        "BDMK-V-0005", "TARGET_CALORIES_TOO_LOW"
+    )
     PROFILE_REQUIRED = ErrorDefinition("BDMK-S-0001", "PROFILE_REQUIRED")
     FETCH_FAILED = ErrorDefinition("BDMK-S-0002", "BODY_MAKE_PLAN_FETCH_FAILED")
     DB_FETCH_ERROR = ErrorDefinition("BDMK-R-0001", "DB_ERROR")

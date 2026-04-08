@@ -109,13 +109,21 @@ class BodyMakePlanService:
             if user is None:
                 raise ValidationException(BodyMakeErrors.PROFILE_REQUIRED)
 
+            maintenance_calories = int(user.required_calories)
+            basal_metabolism = int(user.basal_metabolism)
+
             BodyMakePlanService._validate_request(request)
+            BodyMakePlanService._validate_plan_safety(
+                request=request,
+                maintenance_calories=maintenance_calories,
+                basal_metabolism=basal_metabolism,
+            )
 
             plan_data = BodyMakePlanService._build_plan_data(
                 request=request,
                 user_id=user.id,
                 start_weight_kg=user.weight,
-                maintenance_calories=int(user.required_calories),
+                maintenance_calories=maintenance_calories,
             )
 
             existing_plan = BodyMakePlanRepository.find_by_user_and_effective_from(
@@ -168,6 +176,38 @@ class BodyMakePlanService:
 
         if request.duration_days <= 0:
             raise ValidationException(BodyMakeErrors.INVALID_DURATION_DAYS)
+
+    @staticmethod
+    def _validate_plan_safety(
+        request: BodyMakePlanUpsertRequest,
+        maintenance_calories: int,
+        basal_metabolism: int,
+    ) -> None:
+        """ダイエット計画の最低安全ラインを検証する。
+
+        frontend では warning / danger の注意喚起を行うが、
+        backend では最低限、基礎代謝を下回る危険な計画だけを拒否する。
+
+        Args:
+            request: 計画入力値。
+            maintenance_calories: 維持カロリー。
+            basal_metabolism: 基礎代謝量。
+
+        Raises:
+            ValidationException: 安全ラインを下回る場合。
+        """
+        if request.course != GoalCourse.DIET:
+            return
+
+        _, target_calories = calculate_target_calories_for_plan(
+            maintenance_calories=maintenance_calories,
+            course=request.course,
+            target_weight_kg=request.target_weight_kg,
+            duration_days=request.duration_days,
+        )
+
+        if target_calories < basal_metabolism:
+            raise ValidationException(BodyMakeErrors.TARGET_CALORIES_TOO_LOW)
 
     @staticmethod
     def _build_plan_data(
