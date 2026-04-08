@@ -14,18 +14,20 @@ from service.body_make_plan_service import BodyMakePlanService
 from sqlalchemy.exc import SQLAlchemyError
 
 
-def _user() -> User:
-    return User(
-        id=1,
-        height=175,
-        weight=70,
-        age=30,
-        gender=Gender.MALE,
-        activity_level=ActivityLevel.MODERATE,
-        basal_metabolism=1701,
-        required_calories=2386,
-        daily_water_goal_ml=2000,
-    )
+def _user(**overrides) -> User:
+    data = {
+        "id": 1,
+        "height": 175,
+        "weight": 70,
+        "age": 30,
+        "gender": Gender.MALE,
+        "activity_level": ActivityLevel.MODERATE,
+        "basal_metabolism": 1701,
+        "required_calories": 2386,
+        "daily_water_goal_ml": 2000,
+    }
+    data.update(overrides)
+    return User(**data)
 
 
 def test_get_latest_plan_returns_none_when_profile_not_registered():
@@ -169,6 +171,63 @@ def test_upsert_plan_creates_plan_with_calculated_values():
     assert result.target_calories == 1986
 
 
+def test_upsert_plan_allows_high_pace_diet_plan_when_target_calories_stay_above_basal_metabolism():
+    # 目標ペースが強めでも、基礎代謝を下回らない場合は backend では保存可能なことを確認する。
+    request = BodyMakePlanUpsertRequest(
+        course=GoalCourse.DIET,
+        effective_from=date(2026, 4, 8),
+        target_weight_kg=5,
+        duration_days=30,
+        memo="短期で絞る",
+    )
+    saved_plan = BodyMakePlan(
+        id=1,
+        user_id=1,
+        course=GoalCourse.DIET,
+        effective_from=date(2026, 4, 8),
+        duration_days=30,
+        target_end_date=date(2026, 5, 7),
+        target_weight_kg=5,
+        memo="短期で絞る",
+        start_weight_kg=85,
+        maintenance_calories=3356,
+        daily_calorie_adjustment=1200,
+        target_calories=2156,
+    )
+
+    with (
+        patch(
+            "service.body_make_plan_service.UserRepository.get_first",
+            return_value=_user(
+                height=180,
+                weight=85,
+                age=28,
+                activity_level=ActivityLevel.ACTIVE,
+                basal_metabolism=1800,
+                required_calories=3356,
+            ),
+        ),
+        patch(
+            "service.body_make_plan_service.BodyMakePlanRepository.find_by_user_and_effective_from",
+            return_value=None,
+        ),
+        patch(
+            "service.body_make_plan_service.BodyMakePlanRepository.create",
+            return_value=saved_plan,
+        ) as mock_create,
+    ):
+        result = BodyMakePlanService.upsert_plan(object(), request)
+
+    created_plan = mock_create.call_args[0][1]
+    assert created_plan.target_end_date == date(2026, 5, 7)
+    assert created_plan.daily_calorie_adjustment == 1200
+    assert created_plan.target_calories == 2156
+
+    assert result.id == 1
+    assert result.course == GoalCourse.DIET
+    assert result.target_calories == 2156
+
+
 def test_upsert_plan_updates_existing_same_day_plan():
     # 同日プランが既にある場合は更新処理が呼ばれることを確認する。
     request = BodyMakePlanUpsertRequest(
@@ -288,6 +347,33 @@ def test_upsert_plan_raises_validation_exception_for_invalid_duration():
     assert exc_info.value.message == BodyMakeErrors.INVALID_DURATION_DAYS.message
 
 
+def test_upsert_plan_raises_validation_exception_when_target_calories_fall_below_basal_metabolism():
+    # 目標摂取カロリーが基礎代謝を下回る場合は ValidationException を返すことを確認する。
+    request = BodyMakePlanUpsertRequest(
+        course=GoalCourse.DIET,
+        effective_from=date(2026, 4, 8),
+        target_weight_kg=5,
+        duration_days=15,
+        memo="短期で絞る",
+    )
+
+    with patch(
+        "service.body_make_plan_service.UserRepository.get_first",
+        return_value=_user(
+            height=165,
+            weight=70,
+            age=26,
+            basal_metabolism=1678,
+            required_calories=2600,
+        ),
+    ):
+        with pytest.raises(ValidationException) as exc_info:
+            BodyMakePlanService.upsert_plan(object(), request)
+
+    assert exc_info.value.code == BodyMakeErrors.TARGET_CALORIES_TOO_LOW.code
+    assert exc_info.value.message == BodyMakeErrors.TARGET_CALORIES_TOO_LOW.message
+
+
 def test_get_latest_plan_raises_repository_exception_on_sqlalchemy_error():
     # DB 例外が発生した場合は RepositoryException に変換されることを確認する。
     with (
@@ -326,3 +412,50 @@ def test_upsert_plan_raises_repository_exception_on_sqlalchemy_error():
 
     assert exc_info.value.code == BodyMakeErrors.DB_SAVE_ERROR.code
     assert exc_info.value.message == BodyMakeErrors.DB_SAVE_ERROR.message
+
+def test_upsert_plan_allows_high_pace_bulk_plan():
+    # 増量ペースが高めでも、backend では警告のみの扱いとして保存可能なことを確認する。
+    request = BodyMakePlanUpsertRequest(
+        course=GoalCourse.BULK,
+        effective_from=date(2026, 4, 8),
+        target_weight_kg=3,
+        duration_days=30,
+        memo="筋量アップ",
+    )
+    saved_plan = BodyMakePlan(
+        id=1,
+        user_id=1,
+        course=GoalCourse.BULK,
+        effective_from=date(2026, 4, 8),
+        duration_days=30,
+        target_end_date=date(2026, 5, 7),
+        target_weight_kg=3,
+        memo="筋量アップ",
+        start_weight_kg=70,
+        maintenance_calories=2386,
+        daily_calorie_adjustment=720,
+        target_calories=3106,
+    )
+
+    with (
+        patch("service.body_make_plan_service.UserRepository.get_first", return_value=_user()),
+        patch(
+            "service.body_make_plan_service.BodyMakePlanRepository.find_by_user_and_effective_from",
+            return_value=None,
+        ),
+        patch(
+            "service.body_make_plan_service.BodyMakePlanRepository.create",
+            return_value=saved_plan,
+        ) as mock_create,
+    ):
+        result = BodyMakePlanService.upsert_plan(object(), request)
+
+    created_plan = mock_create.call_args[0][1]
+    assert created_plan.course == GoalCourse.BULK
+    assert created_plan.target_end_date == date(2026, 5, 7)
+    assert created_plan.daily_calorie_adjustment == 720
+    assert created_plan.target_calories == 3106
+
+    assert result.id == 1
+    assert result.course == GoalCourse.BULK
+    assert result.target_calories == 3106
