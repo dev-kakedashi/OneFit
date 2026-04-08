@@ -103,3 +103,20 @@ class DashboardErrors:
     INVALID_DATE = ErrorDefinition("DASH-A-0001", "INVALID_DATE")
     FETCH_FAILED = ErrorDefinition("DASH-S-0001", "SUMMARY_FETCH_FAILED")
     DB_FETCH_ERROR = ErrorDefinition("DASH-R-0001", "DB_ERROR")
+
+
+class BodyMakeErrors:
+    INVALID_EFFECTIVE_FROM = ErrorDefinition("BDMK-V-0001", "INVALID_EFFECTIVE_FROM")
+    INVALID_DURATION_DAYS = ErrorDefinition("BDMK-V-0002", "INVALID_DURATION_DAYS")
+    INVALID_TARGET_WEIGHT_KG = ErrorDefinition(
+        "BDMK-V-0003", "INVALID_TARGET_WEIGHT_KG"
+    )
+    INVALID_GOAL_COURSE = ErrorDefinition("BDMK-V-0004", "INVALID_GOAL_COURSE")
+    TARGET_CALORIES_TOO_LOW = ErrorDefinition(
+        "BDMK-V-0005", "TARGET_CALORIES_TOO_LOW"
+    )
+    PROFILE_REQUIRED = ErrorDefinition("BDMK-S-0001", "PROFILE_REQUIRED")
+    FETCH_FAILED = ErrorDefinition("BDMK-S-0002", "BODY_MAKE_PLAN_FETCH_FAILED")
+    DB_FETCH_ERROR = ErrorDefinition("BDMK-R-0001", "DB_ERROR")
+    SAVE_FAILED = ErrorDefinition("BDMK-S-0003", "BODY_MAKE_PLAN_SAVE_FAILED")
+    DB_SAVE_ERROR = ErrorDefinition("BDMK-R-0002", "DB_ERROR")

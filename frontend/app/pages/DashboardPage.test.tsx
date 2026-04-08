@@ -51,6 +51,7 @@ describe('DashboardPage', () => {
         targetWaterIntakeMl: 2000,
         waterIntakeMl: 900,
         remainingWaterIntakeMl: 1100,
+        currentPlan: null,
         profileRegistered: true,
       },
       loading: false,

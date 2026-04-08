@@ -1,3 +1,12 @@
+import type { GoalCourse } from '../body-make/types';
+
+export interface DashboardCurrentPlan {
+  course: GoalCourse;
+  targetEndDate: string | null;
+  targetWeightKg: number | null;
+  dailyCalorieAdjustment: number | null;
+}
+
 export interface DashboardSummary {
   targetCalories: number | null;
   intakeCalories: number;
@@ -6,6 +15,7 @@ export interface DashboardSummary {
   targetWaterIntakeMl: number | null;
   waterIntakeMl: number;
   remainingWaterIntakeMl: number | null;
+  currentPlan: DashboardCurrentPlan | null;
   profileRegistered: boolean;
 }
 
