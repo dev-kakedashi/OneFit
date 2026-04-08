@@ -27,14 +27,19 @@ export const getBodyMakePlanTimeline = (
   today: string,
 ): BodyMakePlanTimeline => {
   const orderedPlans = sortPlansAscending(plans);
+  const currentPlans = orderedPlans.filter(
+    (plan) => plan.effectiveFrom <= today,
+  );
+  const currentPlan =
+    currentPlans.length > 0 ? currentPlans[currentPlans.length - 1] : null;
 
   return {
-    currentPlan:
-      orderedPlans.filter((plan) => plan.effectiveFrom <= today).at(-1) ?? null,
+    currentPlan,
     upcomingPlan:
       orderedPlans.find((plan) => plan.effectiveFrom > today) ?? null,
   };
 };
+
 
 export const getEditableBodyMakePlan = (
   timeline: BodyMakePlanTimeline,
