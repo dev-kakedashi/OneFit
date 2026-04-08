@@ -4,6 +4,7 @@ import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import { toDateAtMidnight } from '../lib/calendar';
 import { type DashboardSummary } from '../types';
 import { DashboardHydrationCard } from './DashboardHydrationCard';
+import { DashboardPlanStatus } from './DashboardPlanStatus';
 
 type DashboardOverviewProps = {
   selectedDate: string;
@@ -97,6 +98,12 @@ export function DashboardOverview({
             </span>
           )}
         </div>
+
+        <DashboardPlanStatus
+          summary={summary}
+          selectedDate={selectedDate}
+          todayString={todayString}
+        />
 
         <div className="mt-6 overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 p-5 text-white">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-300">
