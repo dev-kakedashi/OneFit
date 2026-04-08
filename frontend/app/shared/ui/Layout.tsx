@@ -1,5 +1,12 @@
 import { Link, Outlet, useLocation } from 'react-router';
-import { Droplets, Dumbbell, Home, User, UtensilsCrossed } from 'lucide-react';
+import {
+  Droplets,
+  Dumbbell,
+  Home,
+  Target,
+  User,
+  UtensilsCrossed,
+} from 'lucide-react';
 
 export function Layout() {
   const location = useLocation();
@@ -43,6 +50,18 @@ export function Layout() {
             >
               <User size={20} />
               <span>身体設定</span>
+            </Link>
+
+            <Link
+              to="/body-make"
+              className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 transition-colors ${
+                isActive('/body-make')
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900'
+              }`}
+            >
+              <Target size={20} />
+              <span>ボディメイク</span>
             </Link>
 
             <Link
