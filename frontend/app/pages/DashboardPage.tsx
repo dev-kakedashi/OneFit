@@ -9,6 +9,7 @@ import {
 } from '../features/dashboard/lib/calendar';
 import { DashboardCalendar } from '../features/dashboard/ui/DashboardCalendar';
 import { DashboardOverview } from '../features/dashboard/ui/DashboardOverview';
+import { useLatestBodyWeightLog } from '../features/body-weight/hooks/useLatestBodyWeightLog';
 import { formatDateOnly, getTodayString } from '../shared/lib/date';
 
 export function DashboardPage() {
@@ -19,6 +20,11 @@ export function DashboardPage() {
   );
 
   const { summary, loading, error, reload } = useDashboardSummary(selectedDate);
+  const {
+    latestBodyWeightLog,
+    loading: bodyWeightLoading,
+    error: bodyWeightError,
+  } = useLatestBodyWeightLog(selectedDate);
   const visibleMonthString = useMemo(
     () => formatDateOnly(visibleMonth),
     [visibleMonth],
@@ -123,6 +129,9 @@ export function DashboardPage() {
           selectedDate={selectedDate}
           todayString={todayString}
           summary={summary}
+          latestBodyWeightLog={latestBodyWeightLog}
+          bodyWeightLoading={bodyWeightLoading}
+          bodyWeightError={bodyWeightError}
         />
       </div>
     </div>

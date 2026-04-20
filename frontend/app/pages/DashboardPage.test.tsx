@@ -11,12 +11,20 @@ const { useDashboardCalendarMarkers } = vi.hoisted(() => ({
   useDashboardCalendarMarkers: vi.fn(),
 }));
 
+const { useLatestBodyWeightLog } = vi.hoisted(() => ({
+  useLatestBodyWeightLog: vi.fn(),
+}));
+
 vi.mock('../features/dashboard/hooks/useDashboardSummary', () => ({
   useDashboardSummary,
 }));
 
 vi.mock('../features/dashboard/hooks/useDashboardCalendarMarkers', () => ({
   useDashboardCalendarMarkers,
+}));
+
+vi.mock('../features/body-weight/hooks/useLatestBodyWeightLog', () => ({
+  useLatestBodyWeightLog,
 }));
 
 vi.mock('../features/dashboard/ui/DashboardOverview', () => ({
@@ -64,9 +72,17 @@ describe('DashboardPage', () => {
       error: '',
     });
 
+    useLatestBodyWeightLog.mockReturnValue({
+      latestBodyWeightLog: null,
+      loading: false,
+      error: '',
+      reload: vi.fn(),
+    });
+
     render(<DashboardPage />);
 
     expect(useDashboardCalendarMarkers).toHaveBeenCalledWith('2025-01-01');
+    expect(useLatestBodyWeightLog).toHaveBeenCalledWith('2025-01-02');
 
     fireEvent.click(screen.getByLabelText('次の月へ移動'));
 
