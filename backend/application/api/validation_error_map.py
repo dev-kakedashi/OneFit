@@ -1,5 +1,6 @@
 from common.errors.errors import (
     BodyMakeErrors,
+    BodyWeightErrors,
     DashboardErrors,
     MealErrors,
     ProfileErrors,
@@ -23,6 +24,16 @@ VALIDATION_ERROR_MAP = {
     ("PUT", "/body-make-plans", "effective_from"): BodyMakeErrors.INVALID_EFFECTIVE_FROM,
     ("PUT", "/body-make-plans", "target_weight_kg"): BodyMakeErrors.INVALID_TARGET_WEIGHT_KG,
     ("PUT", "/body-make-plans", "duration_days"): BodyMakeErrors.INVALID_DURATION_DAYS,
+    ("GET", "/body-weight-logs", "date_from"): BodyWeightErrors.INVALID_DATE_FROM,
+    ("GET", "/body-weight-logs", "date_to"): BodyWeightErrors.INVALID_DATE_TO,
+    ("GET", "/body-weight-logs/latest", "date"): BodyWeightErrors.INVALID_DATE,
+    ("PUT", "/body-weight-logs", "measured_on"): BodyWeightErrors.INVALID_DATE,
+    ("PUT", "/body-weight-logs", "weight_kg"): BodyWeightErrors.INVALID_WEIGHT_KG,
+    (
+        "DELETE",
+        "/body-weight-logs/{body_weight_log_id}",
+        "body_weight_log_id",
+    ): BodyWeightErrors.INVALID_ID_FOR_DELETE,
     ("POST", "/meal-logs", "meal_name"): MealErrors.INVALID_MEAL_NAME,
     ("POST", "/meal-logs", "calories"): MealErrors.INVALID_CALORIES,
     ("POST", "/meal-logs", "eaten_at"): MealErrors.INVALID_EATEN_AT,
