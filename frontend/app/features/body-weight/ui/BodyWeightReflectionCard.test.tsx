@@ -41,11 +41,11 @@ describe('BodyWeightReflectionCard', () => {
 
     expect(screen.getByText('体重に差があります（-4kg）')).toBeTruthy();
     expect(
-      screen.getByText('この体重を基本設定に反映すると、カロリー計算が更新されます'),
+      screen.getByText('この体重を身体設定に反映すると、カロリー計算が更新されます'),
     ).toBeTruthy();
 
     fireEvent.click(
-      screen.getByRole('button', { name: 'この体重を基本設定に反映' }),
+      screen.getByRole('button', { name: 'この体重を身体設定に反映' }),
     );
 
     expect(onReflect).toHaveBeenCalledTimes(1);
@@ -112,7 +112,7 @@ describe('BodyWeightReflectionCard', () => {
     expect(screen.getByText('体重に差があります（-1.2kg）')).toBeTruthy();
     expect(
       screen.queryByText(
-        'この体重を基本設定に反映すると、カロリー計算が更新されます',
+        'この体重を身体設定に反映すると、カロリー計算が更新されます',
       ),
     ).toBeNull();
   });

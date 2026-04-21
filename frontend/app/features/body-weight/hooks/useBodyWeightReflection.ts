@@ -109,7 +109,7 @@ export function useBodyWeightReflection({
       onSaved?.();
       setNotice({
         tone: 'success',
-        message: `体重を${formatWeightKg(latestLog.weightKg)}kgに更新しました。カロリーを再計算しました。`,
+        message: `身体設定の体重を${formatWeightKg(latestLog.weightKg)}kgに反映しました。カロリーを再計算しました。`,
       });
     } catch (err) {
       setNotice({

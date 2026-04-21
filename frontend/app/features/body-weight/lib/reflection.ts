@@ -36,11 +36,11 @@ export const buildBodyWeightReflectionSnapshot = (
 
   return {
     latestWeightLabel: `最新体重：${formatWeightKg(latestLog.weightKg)}kg`,
-    currentWeightLabel: `基本設定：${formatWeightKg(profile.weight)}kg`,
+    currentWeightLabel: `身体設定：${formatWeightKg(profile.weight)}kg`,
     differenceLabel: `体重に差があります（${formatWeightDeltaKg(differenceKg)}）`,
     helperLabel:
-      'この体重を基本設定に反映すると、カロリー計算が更新されます',
-    ctaLabel: 'この体重を基本設定に反映',
+      'この体重を身体設定に反映すると、カロリー計算が更新されます',
+    ctaLabel: 'この体重を身体設定に反映',
     variant,
   };
 };
