@@ -99,6 +99,23 @@ class WaterErrors:
     DB_DELETE_ERROR = ErrorDefinition("WATR-R-0004", "DB_ERROR")
 
 
+class BodyWeightErrors:
+    INVALID_DATE = ErrorDefinition("BWGT-A-0001", "INVALID_DATE")
+    INVALID_DATE_FROM = ErrorDefinition("BWGT-A-0002", "INVALID_DATE_FROM")
+    INVALID_DATE_TO = ErrorDefinition("BWGT-A-0003", "INVALID_DATE_TO")
+    INVALID_DATE_RANGE = ErrorDefinition("BWGT-V-0001", "INVALID_DATE_RANGE")
+    INVALID_WEIGHT_KG = ErrorDefinition("BWGT-V-0002", "INVALID_WEIGHT_KG")
+    PROFILE_REQUIRED = ErrorDefinition("BWGT-S-0001", "PROFILE_REQUIRED")
+    FETCH_FAILED = ErrorDefinition("BWGT-S-0002", "BODY_WEIGHT_LOG_FETCH_FAILED")
+    DB_FETCH_ERROR = ErrorDefinition("BWGT-R-0001", "DB_ERROR")
+    SAVE_FAILED = ErrorDefinition("BWGT-S-0003", "BODY_WEIGHT_LOG_SAVE_FAILED")
+    DB_SAVE_ERROR = ErrorDefinition("BWGT-R-0002", "DB_ERROR")
+    INVALID_ID_FOR_DELETE = ErrorDefinition("BWGT-A-0004", "INVALID_ID")
+    NOT_FOUND_FOR_DELETE = ErrorDefinition("BWGT-S-0004", "BODY_WEIGHT_LOG_NOT_FOUND")
+    DELETE_FAILED = ErrorDefinition("BWGT-S-0005", "BODY_WEIGHT_LOG_DELETE_FAILED")
+    DB_DELETE_ERROR = ErrorDefinition("BWGT-R-0003", "DB_ERROR")
+
+
 class DashboardErrors:
     INVALID_DATE = ErrorDefinition("DASH-A-0001", "INVALID_DATE")
     FETCH_FAILED = ErrorDefinition("DASH-S-0001", "SUMMARY_FETCH_FAILED")

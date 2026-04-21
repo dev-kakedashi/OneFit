@@ -4,6 +4,7 @@ export interface DashboardCurrentPlan {
   course: GoalCourse;
   targetEndDate: string | null;
   targetWeightKg: number | null;
+  startWeightKg: number;
   dailyCalorieAdjustment: number | null;
 }
 

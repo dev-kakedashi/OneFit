@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import { toDateAtMidnight } from '../lib/calendar';
 import { type DashboardSummary } from '../types';
+import type { BodyWeightLog } from '../../body-weight/types';
 import { DashboardHydrationCard } from './DashboardHydrationCard';
 import { DashboardPlanStatus } from './DashboardPlanStatus';
 
@@ -10,12 +11,18 @@ type DashboardOverviewProps = {
   selectedDate: string;
   todayString: string;
   summary: DashboardSummary;
+  latestBodyWeightLog?: BodyWeightLog | null;
+  bodyWeightLoading?: boolean;
+  bodyWeightError?: string;
 };
 
 export function DashboardOverview({
   selectedDate,
   todayString,
   summary,
+  latestBodyWeightLog = null,
+  bodyWeightLoading = false,
+  bodyWeightError = '',
 }: DashboardOverviewProps) {
   const selectedDateObject = useMemo(
     () => toDateAtMidnight(selectedDate),
@@ -103,6 +110,9 @@ export function DashboardOverview({
           summary={summary}
           selectedDate={selectedDate}
           todayString={todayString}
+          latestBodyWeightLog={latestBodyWeightLog}
+          bodyWeightLoading={bodyWeightLoading}
+          bodyWeightError={bodyWeightError}
         />
 
         <div className="mt-6 overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 p-5 text-white">

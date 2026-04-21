@@ -15,6 +15,7 @@ type DashboardResponse = {
     course: GoalCourse | null;
     target_end_date: string | null;
     target_weight_kg: number | null;
+    start_weight_kg: number | null;
     body_make_plan_registered: boolean;
     profile_registered: boolean;
   };
@@ -43,6 +44,7 @@ export const getDailySummary = async (
           course: response.summary.course,
           targetEndDate: response.summary.target_end_date,
           targetWeightKg: response.summary.target_weight_kg,
+          startWeightKg: response.summary.start_weight_kg!,
           dailyCalorieAdjustment: response.summary.daily_calorie_adjustment,
         }
       : null;

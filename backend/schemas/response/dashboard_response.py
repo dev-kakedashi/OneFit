@@ -17,6 +17,7 @@ class DailySummaryResponse(BaseModel):
     course: GoalCourse | None
     target_end_date: date | None
     target_weight_kg: float | None
+    start_weight_kg: float | None
     memo: str | None
     body_make_plan_registered: bool
     profile_registered: bool

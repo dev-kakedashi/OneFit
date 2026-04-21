@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getErrorMessage } from '../../../shared/api/client';
 import { getDailySummary } from '../api';
 import { type DashboardSummary } from '../types';
@@ -8,14 +8,19 @@ export function useDashboardSummary(selectedDate: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  const previousDateRef = useRef(selectedDate);
 
   useEffect(() => {
     let cancelled = false;
+    const isDateChanged = previousDateRef.current !== selectedDate;
+    previousDateRef.current = selectedDate;
 
     const run = async () => {
       try {
         setLoading(true);
-        setSummary(null);
+        if (isDateChanged) {
+          setSummary(null);
+        }
         setError('');
         const data = await getDailySummary(selectedDate);
 

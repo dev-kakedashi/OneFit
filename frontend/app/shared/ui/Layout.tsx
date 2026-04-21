@@ -3,6 +3,7 @@ import {
   Droplets,
   Dumbbell,
   Home,
+  Scale,
   Target,
   User,
   UtensilsCrossed,
@@ -98,6 +99,18 @@ export function Layout() {
             >
               <Droplets size={20} />
               <span>水分記録</span>
+            </Link>
+
+            <Link
+              to="/body-weight-logs"
+              className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 transition-colors ${
+                isActive('/body-weight-logs')
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900'
+              }`}
+            >
+              <Scale size={20} />
+              <span>体重記録</span>
             </Link>
           </div>
         </div>
