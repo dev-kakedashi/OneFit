@@ -13,10 +13,18 @@ const {
   deleteBodyWeightLog: vi.fn(),
 }));
 
+const { useBodyWeightReflection } = vi.hoisted(() => ({
+  useBodyWeightReflection: vi.fn(),
+}));
+
 vi.mock('../features/body-weight/api', () => ({
   getBodyWeightLogs,
   saveBodyWeightLog,
   deleteBodyWeightLog,
+}));
+
+vi.mock('../features/body-weight/hooks/useBodyWeightReflection', () => ({
+  useBodyWeightReflection,
 }));
 
 vi.mock('../shared/lib/date', async () => {
@@ -48,6 +56,13 @@ describe('BodyWeightLogPage', () => {
         memo: '朝一',
       },
     ]);
+    useBodyWeightReflection.mockReturnValue({
+      loading: false,
+      saving: false,
+      notice: null,
+      snapshot: null,
+      reflectLatestWeight: vi.fn(),
+    });
 
     render(<BodyWeightLogPage />);
 
@@ -55,7 +70,7 @@ describe('BodyWeightLogPage', () => {
       expect(getBodyWeightLogs).toHaveBeenCalledWith('2026-04-02'),
     );
 
-    expect(screen.getByText('65.5 kg')).toBeTruthy();
+    expect(screen.getAllByText('65.5 kg')).toHaveLength(2);
     expect(screen.getByText('朝一')).toBeTruthy();
   });
 
@@ -67,6 +82,13 @@ describe('BodyWeightLogPage', () => {
       measuredOn: '2026-04-02',
       weightKg: 65.5,
       memo: '朝一',
+    });
+    useBodyWeightReflection.mockReturnValue({
+      loading: false,
+      saving: false,
+      notice: null,
+      snapshot: null,
+      reflectLatestWeight: vi.fn(),
     });
 
     render(<BodyWeightLogPage />);
@@ -100,6 +122,13 @@ describe('BodyWeightLogPage', () => {
 
   it('記録がない場合の空表示を出す', async () => {
     getBodyWeightLogs.mockResolvedValue([]);
+    useBodyWeightReflection.mockReturnValue({
+      loading: false,
+      saving: false,
+      notice: null,
+      snapshot: null,
+      reflectLatestWeight: vi.fn(),
+    });
 
     render(<BodyWeightLogPage />);
 

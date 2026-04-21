@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Plus, Scale, X } from 'lucide-react';
+import { useBodyWeightReflection } from '../features/body-weight/hooks/useBodyWeightReflection';
 import {
   deleteBodyWeightLog,
   getBodyWeightLogs,
@@ -10,11 +11,13 @@ import {
   toBodyWeightLogFormData,
 } from '../features/body-weight/lib/bodyWeightLogForm';
 import { formatWeightKg } from '../features/body-weight/lib/format';
+import { BodyWeightReflectionCard } from '../features/body-weight/ui/BodyWeightReflectionCard';
 import { BodyWeightLogForm } from '../features/body-weight/ui/BodyWeightLogForm';
 import { BodyWeightLogList } from '../features/body-weight/ui/BodyWeightLogList';
 import type { BodyWeightLog } from '../features/body-weight/types';
 import { useDailyLogPage } from '../shared/hooks/useDailyLogPage';
 import { getErrorMessage } from '../shared/api/client';
+import { Toast } from '../shared/ui/Toast';
 
 export function BodyWeightLogPage() {
   const [submitting, setSubmitting] = useState(false);
@@ -46,6 +49,17 @@ export function BodyWeightLogPage() {
     toFormData: toBodyWeightLogFormData,
     deleteItem: deleteBodyWeightLog,
   });
+  const latestBodyWeightLog = bodyWeightLogs[0] ?? null;
+  const {
+    loading: bodyWeightReflectionLoading,
+    saving: bodyWeightReflectionSaving,
+    notice: bodyWeightReflectionNotice,
+    snapshot: bodyWeightReflectionSnapshot,
+    reflectLatestWeight: reflectLatestBodyWeight,
+  } = useBodyWeightReflection({
+    latestLog: latestBodyWeightLog,
+    enabled: latestBodyWeightLog !== null,
+  });
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -76,11 +90,17 @@ export function BodyWeightLogPage() {
     }
   };
 
-  const latestBodyWeightLog = bodyWeightLogs[0] ?? null;
   const shouldShowBodyWeightList = !showForm || bodyWeightLogs.length > 0;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
+      {bodyWeightReflectionNotice && (
+        <Toast
+          message={bodyWeightReflectionNotice.message}
+          tone={bodyWeightReflectionNotice.tone}
+        />
+      )}
+
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">体重記録</h2>
@@ -132,6 +152,12 @@ export function BodyWeightLogPage() {
           同じ日付の記録は上書き保存されます。
         </p>
       </div>
+
+      <BodyWeightReflectionCard
+        snapshot={bodyWeightReflectionSnapshot}
+        saving={bodyWeightReflectionLoading || bodyWeightReflectionSaving}
+        onReflect={() => void reflectLatestBodyWeight()}
+      />
 
       {showForm && (
         <BodyWeightLogForm

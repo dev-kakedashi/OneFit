@@ -48,7 +48,7 @@ export function DashboardPage() {
     setVisibleMonth(getMonthStart(dateString));
   };
 
-  if (loading) {
+  if (loading && !summary) {
     return (
       <div className="mx-auto max-w-2xl rounded-lg bg-white p-6 text-center shadow">
         <p className="text-gray-600">
@@ -58,7 +58,7 @@ export function DashboardPage() {
     );
   }
 
-  if (error) {
+  if (error && !summary) {
     return (
       <div className="mx-auto max-w-2xl rounded-lg border border-red-200 bg-red-50 p-6 text-center">
         <p className="mb-4 text-red-700">{error}</p>
@@ -99,6 +99,21 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {error && summary && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm">{error}</p>
+            <button
+              type="button"
+              onClick={reload}
+              className="rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-700"
+            >
+              再読み込み
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">ダッシュボード</h2>

@@ -12,6 +12,19 @@ export type BodyWeightGoalSnapshot = {
   achieved: boolean;
 };
 
+// targetWeightKg は「増減する差分」なので、開始時体重から絶対値に変換する。
+const getTargetWeightKg = (plan: DashboardCurrentPlan): number => {
+  if (plan.course === 'diet') {
+    return Math.max(0, plan.startWeightKg - (plan.targetWeightKg ?? 0));
+  }
+
+  if (plan.course === 'bulk') {
+    return plan.startWeightKg + (plan.targetWeightKg ?? 0);
+  }
+
+  return plan.startWeightKg;
+};
+
 export const buildBodyWeightGoalSnapshot = (
   plan: DashboardCurrentPlan | null,
   latestLog: BodyWeightLog | null,
@@ -41,19 +54,21 @@ export const buildBodyWeightGoalSnapshot = (
   }
 
   if (!latestLog) {
+    const targetWeightKg = getTargetWeightKg(plan);
+
     return {
       title: '体重',
       statusLabel:
         plan.course === 'maintenance'
           ? '現状維持中'
-          : 'まだ体重記録がありません',
+          : `目標 ${formatWeightKg(targetWeightKg)}kg`,
       detailLabel:
         plan.course === 'maintenance'
           ? '記録を続けると変化が見えやすくなります'
-          : '記録を追加すると目標との差が見えます',
+          : '記録を追加すると残り体重が見えます',
       ctaLabel: '体重を記録',
       ctaHref: '/body-weight-logs',
-      tone: plan.course === 'maintenance' ? 'info' : 'neutral',
+      tone: 'info',
       achieved: false,
     };
   }
@@ -70,19 +85,22 @@ export const buildBodyWeightGoalSnapshot = (
     };
   }
 
-  const remainingKg =
-    plan.course === 'diet'
-      ? Math.max(0, latestLog.weightKg - plan.targetWeightKg)
-      : Math.max(0, plan.targetWeightKg - latestLog.weightKg);
+  const targetWeightKg = getTargetWeightKg(plan);
+  const remainingKg = Math.abs(latestLog.weightKg - targetWeightKg);
 
-  const achieved = remainingKg === 0;
+  const achieved =
+    plan.course === 'diet'
+      ? latestLog.weightKg <= targetWeightKg
+      : latestLog.weightKg >= targetWeightKg;
 
   return {
     title: '体重',
     statusLabel: achieved
       ? '目標達成'
-      : `目標まで ${formatWeightKg(remainingKg)}kg`,
-    detailLabel: `最新 ${formatWeightKg(latestLog.weightKg)}kg / ${formatBodyWeightDate(latestLog.measuredOn)}`,
+      : `目標 ${formatWeightKg(targetWeightKg)}kg`,
+    detailLabel: achieved
+      ? `目標 ${formatWeightKg(targetWeightKg)}kg / 最新 ${formatWeightKg(latestLog.weightKg)}kg / ${formatBodyWeightDate(latestLog.measuredOn)}`
+      : `残り ${formatWeightKg(remainingKg)}kg / 最新 ${formatWeightKg(latestLog.weightKg)}kg / ${formatBodyWeightDate(latestLog.measuredOn)}`,
     ctaLabel: achieved ? '新しい目標を設定' : '体重記録へ',
     ctaHref: achieved ? '/body-make' : '/body-weight-logs',
     tone: achieved ? 'success' : 'info',

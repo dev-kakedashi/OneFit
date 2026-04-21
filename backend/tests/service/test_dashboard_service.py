@@ -52,6 +52,7 @@ def test_get_daily_summary_returns_empty_summary_when_no_data():
     assert result.summary.course is None
     assert result.summary.target_end_date is None
     assert result.summary.target_weight_kg is None
+    assert result.summary.start_weight_kg is None
     assert result.summary.memo is None
     assert result.summary.body_make_plan_registered is False
     assert result.summary.profile_registered is False
@@ -123,6 +124,7 @@ def test_get_daily_summary_returns_profile_based_summary_when_plan_is_missing():
     assert result.summary.course is None
     assert result.summary.target_end_date is None
     assert result.summary.target_weight_kg is None
+    assert result.summary.start_weight_kg is None
     assert result.summary.memo is None
     assert result.summary.body_make_plan_registered is False
     assert result.summary.profile_registered is True
@@ -208,6 +210,7 @@ def test_get_daily_summary_returns_plan_based_summary():
     assert result.summary.course == GoalCourse.DIET
     assert result.summary.target_end_date == date(2026, 6, 17)
     assert result.summary.target_weight_kg == 5
+    assert result.summary.start_weight_kg == 70
     assert result.summary.memo == "夏までに絞る"
     assert result.summary.body_make_plan_registered is True
     assert result.summary.profile_registered is True

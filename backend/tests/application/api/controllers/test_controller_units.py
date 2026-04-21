@@ -41,6 +41,7 @@ def test_dashboard_controller_delegates_to_service():
             course=None,
             target_end_date=None,
             target_weight_kg=None,
+            start_weight_kg=None,
             memo=None,
             body_make_plan_registered=False,
             profile_registered=False,
