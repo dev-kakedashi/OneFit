@@ -2,12 +2,16 @@ from datetime import date, datetime, time
 
 from common.errors.errors import DashboardErrors
 from common.errors.exceptions import AppException, RepositoryException, ServiceException
+from repository.body_make_plan_repository import BodyMakePlanRepository
 from repository.meal_repository import MealRepository
 from repository.user_repository import UserRepository
+from repository.water_repository import WaterRepository
 from repository.workout_repository import WorkoutRepository
 from schemas.response.dashboard_response import (
     DailySummaryResponse,
     DashboardDailySummaryResponse,
+    DashboardMonthlyMarkerResponse,
+    DashboardMonthlyMarkersResponse,
 )
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -39,29 +43,130 @@ class DashboardService:
             user = UserRepository.get_first(db)
             meals = MealRepository.find_by_date(db, start_datetime)
             workouts = WorkoutRepository.find_by_date(db, start_datetime)
+            water_logs = WaterRepository.find_by_date(db, start_datetime)
 
             intake_calories = sum(meal.calories for meal in meals)
             burned_calories = sum(workout.burned_calories for workout in workouts)
+            water_intake_ml = sum(water_log.amount_ml for water_log in water_logs)
 
             if user is None:
                 summary = DailySummaryResponse(
                     target_calories=None,
+                    maintenance_calories=None,
+                    daily_calorie_adjustment=None,
                     intake_calories=intake_calories,
                     burned_calories=burned_calories,
                     calorie_balance=None,
+                    target_water_intake_ml=None,
+                    water_intake_ml=water_intake_ml,
+                    remaining_water_intake_ml=None,
+                    course=None,
+                    target_end_date=None,
+                    target_weight_kg=None,
+                    start_weight_kg=None,
+                    memo=None,
+                    body_make_plan_registered=False,
                     profile_registered=False,
                 )
             else:
-                target_calories = int(user.required_calories)
+                plan = BodyMakePlanRepository.find_effective_on_date(
+                    db=db,
+                    user_id=user.id,
+                    target_date=target_date,
+                )
+
+                target_calories = (
+                    plan.target_calories if plan is not None else int(user.required_calories)
+                )
+                maintenance_calories = (
+                    plan.maintenance_calories
+                    if plan is not None
+                    else int(user.required_calories)
+                )
+                daily_calorie_adjustment = (
+                    plan.daily_calorie_adjustment if plan is not None else 0
+                )
+                target_water_intake_ml = user.daily_water_goal_ml
+                remaining_water_intake_ml = (
+                    None
+                    if target_water_intake_ml is None
+                    else max(target_water_intake_ml - water_intake_ml, 0)
+                )
+
                 summary = DailySummaryResponse(
                     target_calories=target_calories,
+                    maintenance_calories=maintenance_calories,
+                    daily_calorie_adjustment=daily_calorie_adjustment,
                     intake_calories=intake_calories,
                     burned_calories=burned_calories,
                     calorie_balance=intake_calories - burned_calories - target_calories,
+                    target_water_intake_ml=target_water_intake_ml,
+                    water_intake_ml=water_intake_ml,
+                    remaining_water_intake_ml=remaining_water_intake_ml,
+                    course=plan.course if plan is not None else None,
+                    target_end_date=plan.target_end_date if plan is not None else None,
+                    target_weight_kg=plan.target_weight_kg if plan is not None else None,
+                    start_weight_kg=plan.start_weight_kg if plan is not None else None,
+                    memo=plan.memo if plan is not None else None,
+                    body_make_plan_registered=plan is not None,
                     profile_registered=True,
                 )
 
             return DashboardDailySummaryResponse(summary=summary)
+        except AppException:
+            raise
+        except SQLAlchemyError as error:
+            raise RepositoryException(
+                DashboardErrors.DB_FETCH_ERROR, error=error
+            ) from error
+        except Exception as error:
+            raise ServiceException(DashboardErrors.FETCH_FAILED, error=error) from error
+
+    @staticmethod
+    def get_monthly_markers(
+        db: Session,
+        target_month: date,
+    ) -> DashboardMonthlyMarkersResponse:
+        """指定月の記録マーカー一覧を返す。
+
+        Args:
+            db: DBセッション。
+            target_month: 月判定に使う任意の日付。この年月を集計対象とする。
+
+        Returns:
+            カレンダー表示用の月次マーカー一覧。
+
+        Raises:
+            RepositoryException: DB取得処理で障害が発生した場合。
+            ServiceException: 想定外のサービス層エラーが発生した場合。
+        """
+        try:
+            month_start = date(target_month.year, target_month.month, 1)
+            next_month_start = (
+                date(target_month.year + 1, 1, 1)
+                if target_month.month == 12
+                else date(target_month.year, target_month.month + 1, 1)
+            )
+            start_datetime = datetime.combine(month_start, time.min)
+            end_datetime = datetime.combine(next_month_start, time.min)
+
+            meals = MealRepository.find_in_range(db, start_datetime, end_datetime)
+            workouts = WorkoutRepository.find_in_range(db, start_datetime, end_datetime)
+
+            meal_dates = {meal.eaten_at.date() for meal in meals}
+            workout_dates = {workout.worked_out_at.date() for workout in workouts}
+            marker_dates = sorted(meal_dates | workout_dates)
+
+            return DashboardMonthlyMarkersResponse(
+                markers=[
+                    DashboardMonthlyMarkerResponse(
+                        date=marker_date,
+                        has_meal=marker_date in meal_dates,
+                        has_workout=marker_date in workout_dates,
+                    )
+                    for marker_date in marker_dates
+                ]
+            )
         except AppException:
             raise
         except SQLAlchemyError as error:

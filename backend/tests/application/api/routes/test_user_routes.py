@@ -14,6 +14,7 @@ def test_put_profile_returns_validation_error_for_invalid_height(client):
         "age": 30,
         "gender": "male",
         "activity_level": "moderate",
+        "daily_water_goal_ml": 2000,
     }
 
     response = client.put("/profile", json=payload)
@@ -26,13 +27,14 @@ def test_put_profile_returns_validation_error_for_invalid_height(client):
 
 
 def test_put_profile_creates_profile(client):
-    # 正常なプロフィール入力で、プロフィールを新規登録できることを確認する。
+    # 正常なプロフィール入力で、水分目標を含むプロフィールを新規登録できることを確認する。
     payload = {
         "height": 175,
         "weight": 70,
         "age": 30,
         "gender": "male",
         "activity_level": "moderate",
+        "daily_water_goal_ml": 2000,
     }
 
     response = client.put("/profile", json=payload)
@@ -45,6 +47,7 @@ def test_put_profile_creates_profile(client):
         "age": 30,
         "gender": "male",
         "activity_level": "moderate",
+        "daily_water_goal_ml": 2000,
     }
 
 
@@ -58,6 +61,7 @@ def test_put_profile_updates_existing_profile(client):
             "age": 30,
             "gender": "male",
             "activity_level": "moderate",
+            "daily_water_goal_ml": 2000,
         },
     )
 
@@ -69,6 +73,7 @@ def test_put_profile_updates_existing_profile(client):
             "age": 28,
             "gender": "female",
             "activity_level": "light",
+            "daily_water_goal_ml": 1800,
         },
     )
 
@@ -80,6 +85,7 @@ def test_put_profile_updates_existing_profile(client):
         "age": 28,
         "gender": "female",
         "activity_level": "light",
+        "daily_water_goal_ml": 1800,
     }
 
 
@@ -91,6 +97,7 @@ def test_put_profile_returns_validation_error_for_invalid_gender(client):
         "age": 30,
         "gender": "invalid",
         "activity_level": "moderate",
+        "daily_water_goal_ml": 2000,
     }
 
     response = client.put("/profile", json=payload)
@@ -99,4 +106,24 @@ def test_put_profile_returns_validation_error_for_invalid_gender(client):
     assert response.json() == {
         "code": "PROF-V-0004",
         "message": "INVALID_GENDER",
+    }
+
+
+def test_put_profile_returns_validation_error_for_invalid_daily_water_goal(client):
+    # daily_water_goal_ml が不正な場合、独自エラーコード付きで 422 を返すことを確認する。
+    payload = {
+        "height": 175,
+        "weight": 70,
+        "age": 30,
+        "gender": "male",
+        "activity_level": "moderate",
+        "daily_water_goal_ml": 0,
+    }
+
+    response = client.put("/profile", json=payload)
+
+    assert response.status_code == 422
+    assert response.json() == {
+        "code": "PROF-V-0006",
+        "message": "INVALID_DAILY_WATER_GOAL",
     }

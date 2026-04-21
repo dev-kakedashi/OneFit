@@ -1,6 +1,9 @@
 from datetime import date
 
-from schemas.response.dashboard_response import DashboardDailySummaryResponse
+from schemas.response.dashboard_response import (
+    DashboardDailySummaryResponse,
+    DashboardMonthlyMarkersResponse,
+)
 from service.dashboard_service import DashboardService
 from sqlalchemy.orm import Session
 
@@ -16,3 +19,12 @@ class DashboardController:
         """指定日のダッシュボード集計結果を取得する。"""
 
         return DashboardService.get_daily_summary(db, target_date)
+
+    @staticmethod
+    def get_monthly_markers(
+        db: Session,
+        target_month: date,
+    ) -> DashboardMonthlyMarkersResponse:
+        """指定月の記録マーカー一覧を取得する。"""
+
+        return DashboardService.get_monthly_markers(db, target_month)

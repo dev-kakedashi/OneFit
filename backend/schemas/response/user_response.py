@@ -12,3 +12,4 @@ class UserResponse(BaseModel):
     age: int
     gender: Gender
     activity_level: ActivityLevel
+    daily_water_goal_ml: int | None = None

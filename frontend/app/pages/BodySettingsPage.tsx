@@ -1,28 +1,18 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Save } from 'lucide-react';
-import { getErrorMessage } from '../shared/api/client';
 import { getBodySettings, saveBodySettings } from '../features/profile/api';
-import { type BodySettings } from '../features/profile/types';
+import {
+  buildBodySettings,
+  EMPTY_BODY_SETTINGS_FORM,
+  type BodySettingsForm,
+  type FieldErrors,
+  toBodySettingsFormData,
+  validateBodySettingsForm,
+} from '../features/profile/lib/bodySettingsForm';
 import { calculateBMR, calculateTDEE } from '../features/profile/lib/calculations';
-
-
-type BodySettingsForm = {
-  height: string;
-  weight: string;
-  age: string;
-  gender: BodySettings['gender'];
-  activityLevel: BodySettings['activityLevel'];
-};
-
-type FieldErrors = Partial<Record<'height' | 'weight' | 'age', string>>;
-
-const EMPTY_FORM: BodySettingsForm = {
-  height: '',
-  weight: '',
-  age: '',
-  gender: 'male',
-  activityLevel: 'moderate',
-};
+import { type BodySettings } from '../features/profile/types';
+import { BodySettingsPreview } from '../features/profile/ui/BodySettingsPreview';
+import { getErrorMessage } from '../shared/api/client';
 
 const GENDER_OPTIONS: Array<{
   value: BodySettings['gender'];
@@ -44,72 +34,10 @@ const ACTIVITY_LEVEL_OPTIONS: Array<{
   { value: 'very_active', label: '非常に激しい運動' },
 ];
 
-const toFormData = (settings: BodySettings): BodySettingsForm => ({
-  height: String(settings.height),
-  weight: String(settings.weight),
-  age: String(settings.age),
-  gender: settings.gender,
-  activityLevel: settings.activityLevel,
-});
-
-const buildSettings = (formData: BodySettingsForm): BodySettings | null => {
-  if (!formData.height || !formData.weight || !formData.age) {
-    return null;
-  }
-
-  const height = Number(formData.height);
-  const weight = Number(formData.weight);
-  const age = Number(formData.age);
-
-  if (
-    !Number.isFinite(height) ||
-    !Number.isFinite(weight) ||
-    !Number.isFinite(age) ||
-    height <= 0 ||
-    weight <= 0 ||
-    age <= 0
-  ) {
-    return null;
-  }
-
-  return {
-    height,
-    weight,
-    age,
-    gender: formData.gender,
-    activityLevel: formData.activityLevel,
-  };
-};
-
-const validateForm = (formData: BodySettingsForm): FieldErrors => {
-  const errors: FieldErrors = {};
-  const height = Number(formData.height);
-  const weight = Number(formData.weight);
-  const age = Number(formData.age);
-
-  if (!formData.height) {
-    errors.height = '身長を入力してください。';
-  } else if (!Number.isFinite(height) || height < 100 || height > 250) {
-    errors.height = '身長は 100〜250cm で入力してください。';
-  }
-
-  if (!formData.weight) {
-    errors.weight = '体重を入力してください。';
-  } else if (!Number.isFinite(weight) || weight < 30 || weight > 200) {
-    errors.weight = '体重は 30〜200kg で入力してください。';
-  }
-
-  if (!formData.age) {
-    errors.age = '年齢を入力してください。';
-  } else if (!Number.isFinite(age) || age < 10 || age > 120) {
-    errors.age = '年齢は 10〜120 歳で入力してください。';
-  }
-
-  return errors;
-};
-
 export function BodySettingsPage() {
-  const [formData, setFormData] = useState<BodySettingsForm>(EMPTY_FORM);
+  const [formData, setFormData] = useState<BodySettingsForm>(
+    EMPTY_BODY_SETTINGS_FORM,
+  );
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -124,7 +52,7 @@ export function BodySettingsPage() {
         const profile = await getBodySettings();
 
         if (profile) {
-          setFormData(toFormData(profile));
+          setFormData(toBodySettingsFormData(profile));
         }
       } catch (err) {
         setError(getErrorMessage(err, 'プロフィールの取得に失敗しました。'));
@@ -136,15 +64,14 @@ export function BodySettingsPage() {
     void loadProfile();
   }, []);
 
-  const previewSettings = buildSettings(formData);
+  const previewSettings = buildBodySettings(formData);
   const bmr = previewSettings ? calculateBMR(previewSettings) : null;
   const tdee = previewSettings ? calculateTDEE(previewSettings) : null;
 
-  // 保存時だけ厳密に検証し、backend へは正規化済みの値を渡す。
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
 
-    const errors = validateForm(formData);
+    const errors = validateBodySettingsForm(formData);
     setFieldErrors(errors);
     setSaved(false);
 
@@ -152,7 +79,7 @@ export function BodySettingsPage() {
       return;
     }
 
-    const settings = buildSettings(formData);
+    const settings = buildBodySettings(formData);
     if (!settings) {
       return;
     }
@@ -161,7 +88,7 @@ export function BodySettingsPage() {
       setSaving(true);
       setError('');
       const savedProfile = await saveBodySettings(settings);
-      setFormData(toFormData(savedProfile));
+      setFormData(toBodySettingsFormData(savedProfile));
       setSaved(true);
       window.setTimeout(() => setSaved(false), 3000);
     } catch (err) {
@@ -197,10 +124,14 @@ export function BodySettingsPage() {
           <h3 className="mb-4 text-xl font-semibold text-gray-900">基本情報</h3>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="body-height"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
               身長 (cm)
             </label>
             <input
+              id="body-height"
               type="number"
               value={formData.height}
               onChange={(e) => {
@@ -218,10 +149,14 @@ export function BodySettingsPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="body-weight"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
               体重 (kg)
             </label>
             <input
+              id="body-weight"
               type="number"
               value={formData.weight}
               onChange={(e) => {
@@ -240,10 +175,14 @@ export function BodySettingsPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="body-age"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
               年齢
             </label>
             <input
+              id="body-age"
               type="number"
               value={formData.age}
               onChange={(e) => {
@@ -290,10 +229,14 @@ export function BodySettingsPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="body-activity-level"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
               活動レベル
             </label>
             <select
+              id="body-activity-level"
               value={formData.activityLevel}
               onChange={(e) =>
                 setFormData({
@@ -309,6 +252,43 @@ export function BodySettingsPage() {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="body-daily-water-goal"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
+              1日の目標水分量 (ml)
+            </label>
+            <input
+              id="body-daily-water-goal"
+              type="number"
+              value={formData.dailyWaterGoalMl}
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  dailyWaterGoalMl: e.target.value,
+                });
+                setFieldErrors({
+                  ...fieldErrors,
+                  dailyWaterGoalMl: undefined,
+                });
+              }}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-cyan-500"
+              min="250"
+              max="10000"
+              step="50"
+              placeholder="2000"
+            />
+            {fieldErrors.dailyWaterGoalMl && (
+              <p className="mt-1 text-sm text-red-600">
+                {fieldErrors.dailyWaterGoalMl}
+              </p>
+            )}
+            <p className="mt-2 text-sm text-gray-500">
+              未入力でも保存できます。ダッシュボードでは「目標未設定」として表示されます。
+            </p>
           </div>
 
           <button
@@ -327,35 +307,11 @@ export function BodySettingsPage() {
           )}
         </form>
 
-        <div className="space-y-6">
-          <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white shadow-lg">
-            <h3 className="mb-2 text-lg font-semibold opacity-90">基礎代謝 (BMR)</h3>
-            <div className="mb-2 text-4xl font-bold">
-              {bmr ?? '--'} <span className="text-xl opacity-90">kcal/日</span>
-            </div>
-            <p className="text-sm opacity-80">
-              必須項目を入力すると preview が表示されます
-            </p>
-          </div>
-
-          <div className="rounded-lg bg-gradient-to-br from-green-500 to-green-600 p-6 text-white shadow-lg">
-            <h3 className="mb-2 text-lg font-semibold opacity-90">必要カロリー (TDEE)</h3>
-            <div className="mb-2 text-4xl font-bold">
-              {tdee ?? '--'} <span className="text-xl opacity-90">kcal/日</span>
-            </div>
-            <p className="text-sm opacity-80">
-              backend と同じ計算式で求めた維持カロリー
-            </p>
-          </div>
-
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h4 className="mb-2 font-semibold text-gray-900">計算について</h4>
-            <p className="text-sm leading-relaxed text-gray-600">
-              Harris-Benedict方程式を使って基礎代謝を算出し、活動レベルを掛けて必要カロリーを計算しています。
-              表示値は backend の計算ルールに合わせて整数化しています。
-            </p>
-          </div>
-        </div>
+        <BodySettingsPreview
+          previewSettings={previewSettings}
+          bmr={bmr}
+          tdee={tdee}
+        />
       </div>
     </div>
   );

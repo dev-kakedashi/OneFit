@@ -124,6 +124,29 @@ docker compose run --rm backend alembic -c db/alembic.ini revision --autogenerat
 docker compose run --rm backend alembic -c db/alembic.ini upgrade head
 ```
 
+## テスト実行
+
+以下のコマンドは、frontend / backend コンテナが起動している前提で、リポジトリルートで実行してください。
+
+* backend
+    * 全体実行
+      ```bash
+      docker compose exec backend pytest --cov=. --cov-report=term
+      ```
+    * 個別実行
+      ```bash
+      docker compose exec backend pytest tests/service/test_dashboard_service.py tests/application/api/routes/test_dashboard_routes.py
+      ```
+* frontend
+    * 全体実行
+      ```bash
+      docker compose exec frontend npm test
+      ```
+    * 個別実行
+      ```bash
+      docker compose exec frontend npm test -- app/features/dashboard/hooks/useDashboardCalendarMarkers.test.tsx app/features/dashboard/ui/DashboardCalendar.test.tsx app/pages/DashboardPage.test.tsx
+      ```
+
 ## コミットルール
 
 |type|説明|

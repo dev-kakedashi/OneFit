@@ -3,14 +3,14 @@ import os
 from application.api.routes.dashboard_routes import router as dashboard_router
 from application.api.routes.meal_routes import router as meal_router
 from application.api.routes.user_routes import router as user_router
+from application.api.routes.water_routes import router as water_router
 from application.api.routes.workout_routes import router as workout_router
-from common.errors.errors import (
-    CommonErrors,
-    DashboardErrors,
-    MealErrors,
-    ProfileErrors,
-    WorkoutErrors,
+from application.api.routes.body_make_plan_routes import router as body_make_plan_router
+from application.api.routes.body_weight_log_routes import (
+    router as body_weight_log_router,
 )
+from application.api.validation_error_map import VALIDATION_ERROR_MAP
+from common.errors.errors import CommonErrors
 from common.errors.exceptions import (
     NotFoundException,
     RepositoryException,
@@ -54,59 +54,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 logger = AppLogger()
-
-VALIDATION_ERROR_MAP = {
-    ("GET", "/dashboard/daily-summary", "date"): DashboardErrors.INVALID_DATE,
-    ("GET", "/meal-logs", "date"): MealErrors.INVALID_DATE,
-    ("GET", "/workout-logs", "date"): WorkoutErrors.INVALID_DATE,
-    ("PUT", "/profile", "height"): ProfileErrors.INVALID_HEIGHT,
-    ("PUT", "/profile", "weight"): ProfileErrors.INVALID_WEIGHT,
-    ("PUT", "/profile", "age"): ProfileErrors.INVALID_AGE,
-    ("PUT", "/profile", "gender"): ProfileErrors.INVALID_GENDER,
-    ("PUT", "/profile", "activity_level"): ProfileErrors.INVALID_ACTIVITY_LEVEL,
-    ("POST", "/meal-logs", "meal_name"): MealErrors.INVALID_MEAL_NAME,
-    ("POST", "/meal-logs", "calories"): MealErrors.INVALID_CALORIES,
-    ("POST", "/meal-logs", "eaten_at"): MealErrors.INVALID_EATEN_AT,
-    ("PUT", "/meal-logs/{meal_id}", "meal_id"): MealErrors.INVALID_ID_FOR_UPDATE,
-    (
-        "PUT",
-        "/meal-logs/{meal_id}",
-        "meal_name",
-    ): MealErrors.INVALID_MEAL_NAME_FOR_UPDATE,
-    ("PUT", "/meal-logs/{meal_id}", "calories"): MealErrors.INVALID_CALORIES_FOR_UPDATE,
-    ("PUT", "/meal-logs/{meal_id}", "eaten_at"): MealErrors.INVALID_EATEN_AT_FOR_UPDATE,
-    ("DELETE", "/meal-logs/{meal_id}", "meal_id"): MealErrors.INVALID_ID_FOR_DELETE,
-    ("POST", "/workout-logs", "workout_name"): WorkoutErrors.INVALID_WORKOUT_NAME,
-    ("POST", "/workout-logs", "burned_calories"): WorkoutErrors.INVALID_BURNED_CALORIES,
-    ("POST", "/workout-logs", "worked_out_at"): WorkoutErrors.INVALID_WORKED_OUT_AT,
-    (
-        "PUT",
-        "/workout-logs/{workout_id}",
-        "workout_id",
-    ): WorkoutErrors.INVALID_ID_FOR_UPDATE,
-    (
-        "PUT",
-        "/workout-logs/{workout_id}",
-        "workout_name",
-    ): WorkoutErrors.INVALID_WORKOUT_NAME_FOR_UPDATE,
-    (
-        "PUT",
-        "/workout-logs/{workout_id}",
-        "burned_calories",
-    ): WorkoutErrors.INVALID_BURNED_CALORIES_FOR_UPDATE,
-    (
-        "PUT",
-        "/workout-logs/{workout_id}",
-        "worked_out_at",
-    ): WorkoutErrors.INVALID_WORKED_OUT_AT_FOR_UPDATE,
-    (
-        "DELETE",
-        "/workout-logs/{workout_id}",
-        "workout_id",
-    ): WorkoutErrors.INVALID_ID_FOR_DELETE,
-}
 
 
 def _route_path(request: Request) -> str:
@@ -231,7 +179,10 @@ async def unexpected_exception_handler(
 app.include_router(user_router)
 app.include_router(meal_router)
 app.include_router(workout_router)
+app.include_router(water_router)
 app.include_router(dashboard_router)
+app.include_router(body_make_plan_router)
+app.include_router(body_weight_log_router)
 
 
 @app.get("/health")

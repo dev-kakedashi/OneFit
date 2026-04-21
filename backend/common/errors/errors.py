@@ -20,6 +20,7 @@ class ProfileErrors:
     INVALID_AGE = ErrorDefinition("PROF-V-0003", "INVALID_AGE")
     INVALID_GENDER = ErrorDefinition("PROF-V-0004", "INVALID_GENDER")
     INVALID_ACTIVITY_LEVEL = ErrorDefinition("PROF-V-0005", "INVALID_ACTIVITY_LEVEL")
+    INVALID_DAILY_WATER_GOAL = ErrorDefinition("PROF-V-0006", "INVALID_DAILY_WATER_GOAL")
     SAVE_FAILED = ErrorDefinition("PROF-S-0002", "PROFILE_SAVE_FAILED")
     DB_SAVE_ERROR = ErrorDefinition("PROF-R-0002", "DB_ERROR")
 
@@ -74,7 +75,65 @@ class WorkoutErrors:
     DB_DELETE_ERROR = ErrorDefinition("WORK-R-0004", "DB_ERROR")
 
 
+class WaterErrors:
+    INVALID_DATE = ErrorDefinition("WATR-A-0001", "INVALID_DATE")
+    FETCH_FAILED = ErrorDefinition("WATR-S-0001", "WATER_LOG_FETCH_FAILED")
+    DB_FETCH_ERROR = ErrorDefinition("WATR-R-0001", "DB_ERROR")
+    INVALID_AMOUNT_ML = ErrorDefinition("WATR-V-0001", "INVALID_AMOUNT_ML")
+    INVALID_DRANK_AT = ErrorDefinition("WATR-V-0002", "INVALID_DRANK_AT")
+    SAVE_FAILED = ErrorDefinition("WATR-S-0002", "WATER_LOG_SAVE_FAILED")
+    DB_SAVE_ERROR = ErrorDefinition("WATR-R-0002", "DB_ERROR")
+    INVALID_ID_FOR_UPDATE = ErrorDefinition("WATR-A-0002", "INVALID_ID")
+    NOT_FOUND_FOR_UPDATE = ErrorDefinition("WATR-S-0003", "WATER_LOG_NOT_FOUND")
+    INVALID_AMOUNT_ML_FOR_UPDATE = ErrorDefinition(
+        "WATR-V-0003", "INVALID_AMOUNT_ML"
+    )
+    INVALID_DRANK_AT_FOR_UPDATE = ErrorDefinition(
+        "WATR-V-0004", "INVALID_DRANK_AT"
+    )
+    UPDATE_FAILED = ErrorDefinition("WATR-S-0004", "WATER_LOG_UPDATE_FAILED")
+    DB_UPDATE_ERROR = ErrorDefinition("WATR-R-0003", "DB_ERROR")
+    INVALID_ID_FOR_DELETE = ErrorDefinition("WATR-A-0003", "INVALID_ID")
+    NOT_FOUND_FOR_DELETE = ErrorDefinition("WATR-S-0005", "WATER_LOG_NOT_FOUND")
+    DELETE_FAILED = ErrorDefinition("WATR-S-0006", "WATER_LOG_DELETE_FAILED")
+    DB_DELETE_ERROR = ErrorDefinition("WATR-R-0004", "DB_ERROR")
+
+
+class BodyWeightErrors:
+    INVALID_DATE = ErrorDefinition("BWGT-A-0001", "INVALID_DATE")
+    INVALID_DATE_FROM = ErrorDefinition("BWGT-A-0002", "INVALID_DATE_FROM")
+    INVALID_DATE_TO = ErrorDefinition("BWGT-A-0003", "INVALID_DATE_TO")
+    INVALID_DATE_RANGE = ErrorDefinition("BWGT-V-0001", "INVALID_DATE_RANGE")
+    INVALID_WEIGHT_KG = ErrorDefinition("BWGT-V-0002", "INVALID_WEIGHT_KG")
+    PROFILE_REQUIRED = ErrorDefinition("BWGT-S-0001", "PROFILE_REQUIRED")
+    FETCH_FAILED = ErrorDefinition("BWGT-S-0002", "BODY_WEIGHT_LOG_FETCH_FAILED")
+    DB_FETCH_ERROR = ErrorDefinition("BWGT-R-0001", "DB_ERROR")
+    SAVE_FAILED = ErrorDefinition("BWGT-S-0003", "BODY_WEIGHT_LOG_SAVE_FAILED")
+    DB_SAVE_ERROR = ErrorDefinition("BWGT-R-0002", "DB_ERROR")
+    INVALID_ID_FOR_DELETE = ErrorDefinition("BWGT-A-0004", "INVALID_ID")
+    NOT_FOUND_FOR_DELETE = ErrorDefinition("BWGT-S-0004", "BODY_WEIGHT_LOG_NOT_FOUND")
+    DELETE_FAILED = ErrorDefinition("BWGT-S-0005", "BODY_WEIGHT_LOG_DELETE_FAILED")
+    DB_DELETE_ERROR = ErrorDefinition("BWGT-R-0003", "DB_ERROR")
+
+
 class DashboardErrors:
     INVALID_DATE = ErrorDefinition("DASH-A-0001", "INVALID_DATE")
     FETCH_FAILED = ErrorDefinition("DASH-S-0001", "SUMMARY_FETCH_FAILED")
     DB_FETCH_ERROR = ErrorDefinition("DASH-R-0001", "DB_ERROR")
+
+
+class BodyMakeErrors:
+    INVALID_EFFECTIVE_FROM = ErrorDefinition("BDMK-V-0001", "INVALID_EFFECTIVE_FROM")
+    INVALID_DURATION_DAYS = ErrorDefinition("BDMK-V-0002", "INVALID_DURATION_DAYS")
+    INVALID_TARGET_WEIGHT_KG = ErrorDefinition(
+        "BDMK-V-0003", "INVALID_TARGET_WEIGHT_KG"
+    )
+    INVALID_GOAL_COURSE = ErrorDefinition("BDMK-V-0004", "INVALID_GOAL_COURSE")
+    TARGET_CALORIES_TOO_LOW = ErrorDefinition(
+        "BDMK-V-0005", "TARGET_CALORIES_TOO_LOW"
+    )
+    PROFILE_REQUIRED = ErrorDefinition("BDMK-S-0001", "PROFILE_REQUIRED")
+    FETCH_FAILED = ErrorDefinition("BDMK-S-0002", "BODY_MAKE_PLAN_FETCH_FAILED")
+    DB_FETCH_ERROR = ErrorDefinition("BDMK-R-0001", "DB_ERROR")
+    SAVE_FAILED = ErrorDefinition("BDMK-S-0003", "BODY_MAKE_PLAN_SAVE_FAILED")
+    DB_SAVE_ERROR = ErrorDefinition("BDMK-R-0002", "DB_ERROR")

@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  addDaysToDateOnly,
   buildDefaultDateTime,
   formatDateOnly,
   formatDateTimeForApi,
   formatDateTimeInputValue,
   getTodayString,
+  getTomorrowString,
   isToday,
 } from './date';
 
@@ -15,6 +17,10 @@ describe('date utilities', () => {
 
   it('Date を yyyy-mm-dd 形式に整形する', () => {
     expect(formatDateOnly(new Date(2025, 0, 2, 3, 4, 5))).toBe('2025-01-02');
+  });
+
+  it('date-only 文字列をそのまま日付として扱う', () => {
+    expect(formatDateOnly('2025-01-02')).toBe('2025-01-02');
   });
 
   it('datetime-local 用の値に整形する', () => {
@@ -44,6 +50,9 @@ describe('date utilities', () => {
     vi.setSystemTime(new Date(2025, 0, 2, 9, 30, 0));
 
     expect(getTodayString()).toBe('2025-01-02');
+    expect(getTomorrowString()).toBe('2025-01-03');
+    expect(addDaysToDateOnly('2025-01-10', 3)).toBe('2025-01-13');
+    expect(isToday('2025-01-02')).toBe(true);
     expect(isToday('2025-01-02T18:00:00')).toBe(true);
     expect(isToday('2025-01-03T00:00:00')).toBe(false);
   });
