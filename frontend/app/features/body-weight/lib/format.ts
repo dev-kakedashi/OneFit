@@ -1,6 +1,20 @@
-export const formatWeightKg = (value: number): string => {
+const roundWeight = (value: number): { rounded: number; formatted: string } => {
   const rounded = Math.round(value * 10) / 10;
-  return rounded.toFixed(1).replace(/\.0$/, '');
+
+  return {
+    rounded,
+    formatted: rounded.toFixed(1).replace(/\.0$/, ''),
+  };
+};
+
+export const formatWeightKg = (value: number): string => {
+  return roundWeight(value).formatted;
+};
+
+export const formatWeightDeltaKg = (value: number): string => {
+  const { rounded, formatted } = roundWeight(value);
+
+  return `${rounded > 0 ? '+' : ''}${formatted}kg`;
 };
 
 export const formatBodyWeightDate = (value: string): string =>

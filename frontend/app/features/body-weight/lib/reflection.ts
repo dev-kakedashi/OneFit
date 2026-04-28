@@ -1,6 +1,6 @@
 import type { BodySettings } from '../../profile/types';
 import type { BodyWeightLog } from '../types';
-import { formatWeightKg } from './format';
+import { formatWeightDeltaKg, formatWeightKg } from './format';
 
 export type BodyWeightReflectionSnapshot = {
   latestWeightLabel: string;
@@ -9,12 +9,6 @@ export type BodyWeightReflectionSnapshot = {
   helperLabel: string;
   ctaLabel: string;
   variant: 'compact' | 'strong';
-};
-
-const formatWeightDeltaKg = (value: number): string => {
-  const rounded = Math.round(value * 10) / 10;
-  const formatted = rounded.toFixed(1).replace(/\.0$/, '');
-  return `${rounded > 0 ? '+' : ''}${formatted}kg`;
 };
 
 export const buildBodyWeightReflectionSnapshot = (
