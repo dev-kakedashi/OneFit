@@ -12,15 +12,21 @@ import {
 } from '../features/body-weight/lib/bodyWeightLogForm';
 import { formatWeightKg } from '../features/body-weight/lib/format';
 import { BodyWeightReflectionCard } from '../features/body-weight/ui/BodyWeightReflectionCard';
+import { BodyWeightHistoryChart } from '../features/body-weight/ui/BodyWeightHistoryChart';
 import { BodyWeightLogForm } from '../features/body-weight/ui/BodyWeightLogForm';
 import { BodyWeightLogList } from '../features/body-weight/ui/BodyWeightLogList';
 import type { BodyWeightLog } from '../features/body-weight/types';
 import { useDailyLogPage } from '../shared/hooks/useDailyLogPage';
 import { getErrorMessage } from '../shared/api/client';
+import { getTodayString } from '../shared/lib/date';
 import { Toast } from '../shared/ui/Toast';
 
 export function BodyWeightLogPage() {
   const [submitting, setSubmitting] = useState(false);
+  const [historyRefreshToken, setHistoryRefreshToken] = useState(0);
+  const refreshBodyWeightHistory = () => {
+    setHistoryRefreshToken((current) => current + 1);
+  };
 
   const {
     editingItem: editingBodyWeightLog,
@@ -76,6 +82,7 @@ export function BodyWeightLogPage() {
       };
 
       await saveBodyWeightLog(payload);
+      refreshBodyWeightHistory();
 
       resetForm();
       if (savedDate === selectedDate) {
@@ -91,6 +98,13 @@ export function BodyWeightLogPage() {
   };
 
   const shouldShowBodyWeightList = !showForm || bodyWeightLogs.length > 0;
+  const todayString = getTodayString();
+  const handleDeleteBodyWeightLog = async (id: number) => {
+    const deleted = await handleDelete(id);
+    if (deleted) {
+      refreshBodyWeightHistory();
+    }
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -153,6 +167,11 @@ export function BodyWeightLogPage() {
         </p>
       </div>
 
+      <BodyWeightHistoryChart
+        todayString={todayString}
+        refreshToken={historyRefreshToken}
+      />
+
       <BodyWeightReflectionCard
         snapshot={bodyWeightReflectionSnapshot}
         saving={bodyWeightReflectionLoading || bodyWeightReflectionSaving}
@@ -177,7 +196,7 @@ export function BodyWeightLogPage() {
             bodyWeightLogs={bodyWeightLogs}
             loading={loading}
             onEdit={handleEdit}
-            onDelete={(id) => void handleDelete(id)}
+            onDelete={(id) => void handleDeleteBodyWeightLog(id)}
             onCreateFirst={toggleForm}
           />
         )}
