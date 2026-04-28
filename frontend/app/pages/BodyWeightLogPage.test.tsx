@@ -17,6 +17,10 @@ const { useBodyWeightReflection } = vi.hoisted(() => ({
   useBodyWeightReflection: vi.fn(),
 }));
 
+const { BodyWeightHistoryChart } = vi.hoisted(() => ({
+  BodyWeightHistoryChart: vi.fn(() => <div>history-chart</div>),
+}));
+
 vi.mock('../features/body-weight/api', () => ({
   getBodyWeightLogs,
   saveBodyWeightLog,
@@ -25,6 +29,10 @@ vi.mock('../features/body-weight/api', () => ({
 
 vi.mock('../features/body-weight/hooks/useBodyWeightReflection', () => ({
   useBodyWeightReflection,
+}));
+
+vi.mock('../features/body-weight/ui/BodyWeightHistoryChart', () => ({
+  BodyWeightHistoryChart,
 }));
 
 vi.mock('../shared/lib/date', async () => {
@@ -70,6 +78,14 @@ describe('BodyWeightLogPage', () => {
       expect(getBodyWeightLogs).toHaveBeenCalledWith('2026-04-02'),
     );
 
+    expect(BodyWeightHistoryChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        todayString: '2026-04-02',
+        refreshToken: 0,
+      }),
+      undefined,
+    );
+
     expect(screen.getAllByText('65.5 kg')).toHaveLength(2);
     expect(screen.getByText('朝一')).toBeTruthy();
   });
@@ -79,7 +95,7 @@ describe('BodyWeightLogPage', () => {
     saveBodyWeightLog.mockResolvedValue({
       id: 1,
       userId: 1,
-      measuredOn: '2026-04-02',
+      measuredOn: '2026-04-01',
       weightKg: 65.5,
       memo: '朝一',
     });
@@ -103,7 +119,7 @@ describe('BodyWeightLogPage', () => {
       target: { value: '65.5' },
     });
     fireEvent.change(screen.getByLabelText('測定日 *'), {
-      target: { value: '2026-04-02' },
+      target: { value: '2026-04-01' },
     });
     fireEvent.change(screen.getByLabelText('メモ'), {
       target: { value: '朝一' },
@@ -113,10 +129,26 @@ describe('BodyWeightLogPage', () => {
 
     await waitFor(() =>
       expect(saveBodyWeightLog).toHaveBeenCalledWith({
-        measuredOn: '2026-04-02',
+        measuredOn: '2026-04-01',
         weightKg: 65.5,
         memo: '朝一',
       }),
+    );
+
+    await waitFor(() =>
+      expect(getBodyWeightLogs).toHaveBeenCalledTimes(2),
+    );
+
+    expect(getBodyWeightLogs).toHaveBeenLastCalledWith('2026-04-01');
+
+    await waitFor(() =>
+      expect(BodyWeightHistoryChart).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          todayString: '2026-04-02',
+          refreshToken: 1,
+        }),
+        undefined,
+      ),
     );
   });
 
