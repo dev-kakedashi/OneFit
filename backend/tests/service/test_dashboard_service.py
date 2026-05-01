@@ -8,6 +8,7 @@ from enums.activity_level import ActivityLevel
 from enums.gender import Gender
 from enums.goal_course import GoalCourse
 from models.body_make_plan import BodyMakePlan
+from models.body_weight_log import BodyWeightLog
 from models.meal import Meal
 from models.user import User
 from models.water_log import WaterLog
@@ -117,7 +118,7 @@ def test_get_daily_summary_returns_profile_based_summary_when_plan_is_missing():
     assert result.summary.daily_calorie_adjustment == 0
     assert result.summary.intake_calories == 1300
     assert result.summary.burned_calories == 300
-    assert result.summary.calorie_balance == -1636
+    assert result.summary.calorie_balance == 1336
     assert result.summary.target_water_intake_ml == 2000
     assert result.summary.water_intake_ml == 1000
     assert result.summary.remaining_water_intake_ml == 1000
@@ -203,7 +204,7 @@ def test_get_daily_summary_returns_plan_based_summary():
     assert result.summary.daily_calorie_adjustment == 400
     assert result.summary.intake_calories == 1300
     assert result.summary.burned_calories == 300
-    assert result.summary.calorie_balance == -1236
+    assert result.summary.calorie_balance == 936
     assert result.summary.target_water_intake_ml == 2000
     assert result.summary.water_intake_ml == 1000
     assert result.summary.remaining_water_intake_ml == 1000
@@ -243,6 +244,181 @@ def test_get_daily_summary_raises_service_exception_on_unexpected_error():
 
     assert exc_info.value.code == DashboardErrors.FETCH_FAILED.code
     assert exc_info.value.message == DashboardErrors.FETCH_FAILED.message
+
+
+def test_get_period_summary_returns_cross_summary():
+    # 期間内の食事・運動・水分・体重を横断して集計できることを確認する。
+    meals = [
+        Meal(
+            id=1,
+            meal_name="Breakfast",
+            calories=1200,
+            eaten_at=datetime(2026, 3, 23, 8, 0, 0),
+            memo=None,
+        ),
+        Meal(
+            id=2,
+            meal_name="Dinner",
+            calories=500,
+            eaten_at=datetime(2026, 3, 24, 19, 0, 0),
+            memo=None,
+        ),
+    ]
+    workouts = [
+        Workout(
+            id=1,
+            workout_name="Running",
+            burned_calories=300,
+            worked_out_at=datetime(2026, 3, 24, 7, 0, 0),
+            memo=None,
+        )
+    ]
+    water_logs = [
+        WaterLog(
+            id=1,
+            amount_ml=300,
+            drank_at=datetime(2026, 3, 23, 8, 0, 0),
+            memo=None,
+        ),
+        WaterLog(
+            id=2,
+            amount_ml=700,
+            drank_at=datetime(2026, 3, 24, 13, 0, 0),
+            memo=None,
+        ),
+    ]
+    body_weight_logs = [
+        BodyWeightLog(
+            id=1,
+            user_id=1,
+            measured_on=date(2026, 3, 23),
+            weight_kg=65.2,
+            memo=None,
+        ),
+        BodyWeightLog(
+            id=2,
+            user_id=1,
+            measured_on=date(2026, 3, 29),
+            weight_kg=64.7,
+            memo=None,
+        ),
+    ]
+
+    with (
+        patch("service.dashboard_service.UserRepository.get_first", return_value=_user()),
+        patch(
+            "service.dashboard_service.BodyMakePlanRepository.find_effective_on_date",
+            return_value=None,
+        ),
+        patch(
+            "service.dashboard_service.BodyWeightLogRepository.find_latest_on_or_before",
+            return_value=None,
+        ),
+        patch("service.dashboard_service.MealRepository.find_in_range", return_value=meals),
+        patch(
+            "service.dashboard_service.WorkoutRepository.find_in_range",
+            return_value=workouts,
+        ),
+        patch("service.dashboard_service.WaterRepository.find_in_range", return_value=water_logs),
+        patch(
+            "service.dashboard_service.BodyWeightLogRepository.find_by_date_range",
+            return_value=body_weight_logs,
+        ),
+    ):
+        result = DashboardService.get_period_summary(object(), date(2026, 3, 25))
+
+    assert result.summary.window_start_date == date(2026, 3, 23)
+    assert result.summary.window_end_date == date(2026, 3, 29)
+    assert result.summary.window_days == 7
+    assert result.summary.calorie_target_total == 18452
+    assert result.summary.intake_calories == 1700
+    assert result.summary.burned_calories == 300
+    assert result.summary.water_target_total_ml == 14000
+    assert result.summary.water_intake_ml == 1000
+    assert result.summary.meal_log_count == 2
+    assert result.summary.meal_day_count == 2
+    assert result.summary.workout_log_count == 1
+    assert result.summary.workout_day_count == 1
+    assert result.summary.water_log_count == 2
+    assert result.summary.water_day_count == 2
+    assert result.summary.body_weight_log_count == 2
+    assert result.summary.body_weight_day_count == 2
+    assert result.summary.recorded_day_count == 3
+    assert result.summary.body_weight_start_kg == 65.2
+    assert result.summary.body_weight_end_kg == 64.7
+    assert result.summary.body_weight_change_kg == -0.5
+    assert result.summary.profile_registered is True
+
+
+def test_get_period_summary_sums_daily_targets_across_plan_changes():
+    # 週の途中でプランが切り替わっても、日ごとの目標を足し合わせて週目標を作ることを確認する。
+    meals = []
+    workouts = []
+    water_logs = []
+    body_weight_logs = []
+    plan_a = BodyMakePlan(
+        id=1,
+        user_id=1,
+        course=GoalCourse.DIET,
+        effective_from=date(2026, 3, 23),
+        duration_days=3,
+        target_end_date=date(2026, 6, 17),
+        target_weight_kg=5,
+        memo=None,
+        start_weight_kg=70,
+        maintenance_calories=2636,
+        daily_calorie_adjustment=400,
+        target_calories=2236,
+    )
+    plan_b = BodyMakePlan(
+        id=2,
+        user_id=1,
+        course=GoalCourse.BULK,
+        effective_from=date(2026, 3, 26),
+        duration_days=3,
+        target_end_date=date(2026, 7, 1),
+        target_weight_kg=5,
+        memo=None,
+        start_weight_kg=70,
+        maintenance_calories=2636,
+        daily_calorie_adjustment=600,
+        target_calories=3236,
+    )
+
+    plan_map = {
+        date(2026, 3, 23): plan_a,
+        date(2026, 3, 24): plan_a,
+        date(2026, 3, 25): plan_a,
+        date(2026, 3, 26): plan_b,
+        date(2026, 3, 27): plan_b,
+        date(2026, 3, 28): plan_b,
+        date(2026, 3, 29): plan_b,
+    }
+
+    with (
+        patch("service.dashboard_service.UserRepository.get_first", return_value=_user()),
+        patch(
+            "service.dashboard_service.BodyMakePlanRepository.find_effective_on_date",
+            side_effect=lambda **kwargs: plan_map[kwargs["target_date"]],
+        ),
+        patch("service.dashboard_service.MealRepository.find_in_range", return_value=meals),
+        patch(
+            "service.dashboard_service.WorkoutRepository.find_in_range",
+            return_value=workouts,
+        ),
+        patch("service.dashboard_service.WaterRepository.find_in_range", return_value=water_logs),
+        patch(
+            "service.dashboard_service.BodyWeightLogRepository.find_by_date_range",
+            return_value=body_weight_logs,
+        ),
+        patch(
+            "service.dashboard_service.BodyWeightLogRepository.find_latest_on_or_before",
+            return_value=None,
+        ),
+    ):
+        result = DashboardService.get_period_summary(object(), date(2026, 3, 25))
+
+    assert result.summary.calorie_target_total == 19652
 
 
 def test_get_monthly_markers_returns_empty_markers_when_no_data():

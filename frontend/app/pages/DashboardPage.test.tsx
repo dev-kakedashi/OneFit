@@ -15,6 +15,10 @@ const { useLatestBodyWeightLog } = vi.hoisted(() => ({
   useLatestBodyWeightLog: vi.fn(),
 }));
 
+const { DashboardCrossSummary } = vi.hoisted(() => ({
+  DashboardCrossSummary: vi.fn(() => <div>cross-summary</div>),
+}));
+
 vi.mock('../features/dashboard/hooks/useDashboardSummary', () => ({
   useDashboardSummary,
 }));
@@ -25,6 +29,10 @@ vi.mock('../features/dashboard/hooks/useDashboardCalendarMarkers', () => ({
 
 vi.mock('../features/body-weight/hooks/useLatestBodyWeightLog', () => ({
   useLatestBodyWeightLog,
+}));
+
+vi.mock('../features/dashboard/ui/DashboardCrossSummary', () => ({
+  DashboardCrossSummary,
 }));
 
 vi.mock('../features/dashboard/ui/DashboardOverview', () => ({
@@ -55,7 +63,7 @@ describe('DashboardPage', () => {
         targetCalories: 2000,
         intakeCalories: 1200,
         burnedCalories: 300,
-        calorieBalance: -1100,
+        calorieBalance: 800,
         targetWaterIntakeMl: 2000,
         waterIntakeMl: 900,
         remainingWaterIntakeMl: 1100,
@@ -81,6 +89,12 @@ describe('DashboardPage', () => {
 
     render(<DashboardPage />);
 
+    expect(DashboardCrossSummary).toHaveBeenCalledWith(
+      expect.objectContaining({
+        todayString: '2025-01-02',
+      }),
+      undefined,
+    );
     expect(useDashboardCalendarMarkers).toHaveBeenCalledWith('2025-01-01');
     expect(useLatestBodyWeightLog).toHaveBeenCalledWith('2025-01-02');
 

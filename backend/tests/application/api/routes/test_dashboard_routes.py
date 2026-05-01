@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from models.body_weight_log import BodyWeightLog
 from models.meal import Meal
 from models.water_log import WaterLog
 from models.workout import Workout
@@ -85,7 +86,7 @@ def test_get_daily_summary_returns_profile_based_summary_when_plan_is_missing(cl
             "daily_calorie_adjustment": 0,
             "intake_calories": 0,
             "burned_calories": 0,
-            "calorie_balance": -2636,
+            "calorie_balance": 2636,
             "target_water_intake_ml": 2000,
             "water_intake_ml": 800,
             "remaining_water_intake_ml": 1200,
@@ -161,7 +162,7 @@ def test_get_daily_summary_returns_body_make_plan_based_summary(client, db_sessi
             "daily_calorie_adjustment": 400,
             "intake_calories": 500,
             "burned_calories": 300,
-            "calorie_balance": -2036,
+            "calorie_balance": 1736,
             "target_water_intake_ml": 2000,
             "water_intake_ml": 800,
             "remaining_water_intake_ml": 1200,
@@ -221,7 +222,7 @@ def test_get_daily_summary_keeps_past_plan_values_when_course_changes(client):
             "daily_calorie_adjustment": 720,
             "intake_calories": 0,
             "burned_calories": 0,
-            "calorie_balance": -1916,
+            "calorie_balance": 1916,
             "target_water_intake_ml": 2000,
             "water_intake_ml": 0,
             "remaining_water_intake_ml": 2000,
@@ -243,7 +244,7 @@ def test_get_daily_summary_keeps_past_plan_values_when_course_changes(client):
             "daily_calorie_adjustment": 600,
             "intake_calories": 0,
             "burned_calories": 0,
-            "calorie_balance": -3236,
+            "calorie_balance": 3236,
             "target_water_intake_ml": 2000,
             "water_intake_ml": 0,
             "remaining_water_intake_ml": 2000,
@@ -253,6 +254,96 @@ def test_get_daily_summary_keeps_past_plan_values_when_course_changes(client):
             "start_weight_kg": 70.0,
             "memo": "筋量アップ",
             "body_make_plan_registered": True,
+            "profile_registered": True,
+        }
+    }
+
+
+def test_get_period_summary_returns_cross_summary(client, db_session):
+    # 期間内の食事・運動・水分・体重を横断して集計できることを確認する。
+    _create_profile(client)
+
+    db_session.add_all(
+        [
+            Meal(
+                id=1,
+                meal_name="Breakfast",
+                calories=1200,
+                eaten_at=datetime(2026, 3, 23, 8, 0, 0),
+                memo=None,
+            ),
+            Meal(
+                id=2,
+                meal_name="Dinner",
+                calories=500,
+                eaten_at=datetime(2026, 3, 24, 19, 0, 0),
+                memo=None,
+            ),
+            Workout(
+                id=1,
+                workout_name="Running",
+                burned_calories=300,
+                worked_out_at=datetime(2026, 3, 24, 7, 0, 0),
+                memo=None,
+            ),
+            WaterLog(
+                id=1,
+                amount_ml=300,
+                drank_at=datetime(2026, 3, 23, 8, 0, 0),
+                memo=None,
+            ),
+            WaterLog(
+                id=2,
+                amount_ml=700,
+                drank_at=datetime(2026, 3, 24, 13, 0, 0),
+                memo=None,
+            ),
+            BodyWeightLog(
+                id=1,
+                user_id=1,
+                measured_on=datetime(2026, 3, 23).date(),
+                weight_kg=65.2,
+                memo=None,
+            ),
+            BodyWeightLog(
+                id=2,
+                user_id=1,
+                measured_on=datetime(2026, 3, 29).date(),
+                weight_kg=64.7,
+                memo=None,
+            ),
+        ]
+    )
+    db_session.commit()
+
+    response = client.get(
+        "/dashboard/period-summary",
+        params={"date": "2026-03-25"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "summary": {
+            "window_start_date": "2026-03-23",
+            "window_end_date": "2026-03-29",
+            "window_days": 7,
+            "calorie_target_total": 18452,
+            "intake_calories": 1700,
+            "burned_calories": 300,
+            "water_target_total_ml": 14000,
+            "water_intake_ml": 1000,
+            "meal_log_count": 2,
+            "meal_day_count": 2,
+            "workout_log_count": 1,
+            "workout_day_count": 1,
+            "water_log_count": 2,
+            "water_day_count": 2,
+            "body_weight_log_count": 2,
+            "body_weight_day_count": 2,
+            "recorded_day_count": 3,
+            "body_weight_start_kg": 65.2,
+            "body_weight_end_kg": 64.7,
+            "body_weight_change_kg": -0.5,
             "profile_registered": True,
         }
     }

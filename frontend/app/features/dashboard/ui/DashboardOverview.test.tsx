@@ -9,7 +9,7 @@ const createSummary = () => ({
   targetCalories: 2000,
   intakeCalories: 1500,
   burnedCalories: 400,
-  calorieBalance: -900,
+  calorieBalance: 500,
   targetWaterIntakeMl: 2000,
   waterIntakeMl: 1200,
   remainingWaterIntakeMl: 800,
@@ -73,5 +73,31 @@ describe('DashboardOverview', () => {
     );
 
     expect(screen.getByText('目標達成です')).toBeTruthy();
+  });
+
+  it('カロリーは摂取目標ベースで進捗を表示する', () => {
+    render(
+      <MemoryRouter>
+        <DashboardOverview
+          selectedDate="2026-04-02"
+          todayString="2026-04-02"
+          summary={{
+            ...createSummary(),
+            targetCalories: 2200,
+            intakeCalories: 800,
+            burnedCalories: 800,
+            calorieBalance: 1400,
+          }}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getAllByText('あと1400kcal摂取できます').length).toBeGreaterThan(0);
+    expect(screen.getByText('36%')).toBeTruthy();
+    expect(
+      screen.getAllByText(
+        '運動による消費は参考値として表示しています。食事予算には自動で加算しません。',
+      ).length,
+    ).toBeGreaterThan(0);
   });
 });
