@@ -95,17 +95,19 @@ export function useDailyLogPage<TItem extends Identifiable, TForm>({
     setShowForm(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number): Promise<boolean> => {
     if (!confirm(deleteConfirmMessage)) {
-      return;
+      return false;
     }
 
     try {
       setError('');
       await deleteItem(id);
       await loadItems(selectedDate);
+      return true;
     } catch (err) {
       setError(getErrorMessage(err, deleteErrorMessage));
+      return false;
     }
   };
 
