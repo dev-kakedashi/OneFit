@@ -118,6 +118,49 @@ def test_list_plans_returns_registered_plans():
     assert result[1].course == GoalCourse.MAINTENANCE
 
 
+def test_delete_plan_returns_true_when_plan_exists():
+    # 対象プランが存在する場合は削除できることを確認する。
+    plan = BodyMakePlan(
+        id=1,
+        user_id=1,
+        course=GoalCourse.DIET,
+        effective_from=date(2026, 4, 6),
+        duration_days=90,
+        target_end_date=date(2026, 7, 4),
+        target_weight_kg=5,
+        memo="夏までに絞る",
+        start_weight_kg=70,
+        maintenance_calories=2386,
+        daily_calorie_adjustment=400,
+        target_calories=1986,
+    )
+
+    db = object()
+
+    with (
+        patch(
+            "service.body_make_plan_service.BodyMakePlanRepository.find_by_id",
+            return_value=plan,
+        ),
+        patch("service.body_make_plan_service.BodyMakePlanRepository.delete") as mock_delete,
+    ):
+        result = BodyMakePlanService.delete_plan(db, 1)
+
+    mock_delete.assert_called_once_with(db, plan)
+    assert result is True
+
+
+def test_delete_plan_returns_false_when_plan_is_missing():
+    # 対象プランが存在しない場合は False を返すことを確認する。
+    with patch(
+        "service.body_make_plan_service.BodyMakePlanRepository.find_by_id",
+        return_value=None,
+    ):
+        result = BodyMakePlanService.delete_plan(object(), 1)
+
+    assert result is False
+
+
 def test_upsert_plan_creates_plan_with_calculated_values():
     # 新規作成時に目標終了日、調整量、目標カロリーが計算されて保存されることを確認する。
     request = BodyMakePlanUpsertRequest(

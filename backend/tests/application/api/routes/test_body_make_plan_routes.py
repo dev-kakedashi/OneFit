@@ -214,6 +214,55 @@ def test_get_latest_body_make_plan_returns_latest_plan(client):
     }
 
 
+def test_delete_body_make_plan_removes_upcoming_plan(client):
+    # 予約済みの次回プランを削除できることを確認する。
+    _create_profile(client)
+
+    current_response = client.put(
+        "/body-make-plans",
+        json={
+            "course": "diet",
+            "effective_from": "2026-05-01",
+            "target_weight_kg": 5,
+            "duration_days": 90,
+            "memo": "継続中",
+        },
+    )
+    assert current_response.status_code == 200
+
+    upcoming_response = client.put(
+        "/body-make-plans",
+        json={
+            "course": "bulk",
+            "effective_from": "2026-05-02",
+            "target_weight_kg": 3,
+            "duration_days": 90,
+            "memo": "次は増量",
+        },
+    )
+    assert upcoming_response.status_code == 200
+
+    delete_response = client.delete("/body-make-plans/2")
+    assert delete_response.status_code == 204
+
+    response = client.get("/body-make-plans")
+
+    assert response.status_code == 200
+    assert [plan["id"] for plan in response.json()] == [1]
+    assert response.json()[0]["course"] == "diet"
+
+
+def test_delete_body_make_plan_returns_not_found_for_missing_plan(client):
+    # 存在しないプランIDは 404 を返すことを確認する。
+    response = client.delete("/body-make-plans/999")
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "code": "BDMK-S-0004",
+        "message": "BODY_MAKE_PLAN_NOT_FOUND",
+    }
+
+
 def test_get_body_make_plans_returns_plans_in_descending_order(client):
     # 一覧取得で effective_from の降順にプランが返ることを確認する。
     _create_profile(client)

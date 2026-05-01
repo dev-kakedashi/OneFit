@@ -14,10 +14,13 @@ const { getBodySettings } = vi.hoisted(() => ({
   getBodySettings: vi.fn(),
 }));
 
-const { getBodyMakePlans, saveBodyMakePlan } = vi.hoisted(() => ({
-  getBodyMakePlans: vi.fn(),
-  saveBodyMakePlan: vi.fn(),
-}));
+const { getBodyMakePlans, saveBodyMakePlan, deleteBodyMakePlan } = vi.hoisted(
+  () => ({
+    getBodyMakePlans: vi.fn(),
+    saveBodyMakePlan: vi.fn(),
+    deleteBodyMakePlan: vi.fn(),
+  }),
+);
 
 vi.mock('../features/profile/api', () => ({
   getBodySettings,
@@ -26,6 +29,7 @@ vi.mock('../features/profile/api', () => ({
 vi.mock('../features/body-make/api', () => ({
   getBodyMakePlans,
   saveBodyMakePlan,
+  deleteBodyMakePlan,
 }));
 
 vi.mock('../shared/lib/date', async () => {
@@ -178,7 +182,7 @@ describe('BodyMakePage', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText('現在のプラン')).toBeTruthy();
+    expect(await screen.findByText('現在有効なプラン')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: '目標を再設定' }));
 
@@ -214,6 +218,67 @@ describe('BodyMakePage', () => {
         durationDays: 90,
         memo: '次は増量',
       }),
+    );
+  });
+
+  it('次回適用予定プランは予約を取り消せる', async () => {
+    getBodySettings.mockResolvedValue({
+      height: 175,
+      weight: 70,
+      age: 30,
+      gender: 'male',
+      activityLevel: 'moderate',
+      dailyWaterGoalMl: 2000,
+    });
+    getBodyMakePlans.mockResolvedValue([
+      {
+        id: 1,
+        userId: 1,
+        course: 'diet',
+        effectiveFrom: '2026-04-01',
+        durationDays: 90,
+        targetEndDate: '2026-06-29',
+        targetWeightKg: 5,
+        memo: '継続中',
+        startWeightKg: 70,
+        maintenanceCalories: 2636,
+        dailyCalorieAdjustment: 400,
+        targetCalories: 2236,
+      },
+      {
+        id: 2,
+        userId: 1,
+        course: 'bulk',
+        effectiveFrom: '2026-04-09',
+        durationDays: 90,
+        targetEndDate: '2026-07-07',
+        targetWeightKg: 3,
+        memo: '次は増量',
+        startWeightKg: 70,
+        maintenanceCalories: 2636,
+        dailyCalorieAdjustment: 240,
+        targetCalories: 2876,
+      },
+    ]);
+    deleteBodyMakePlan.mockResolvedValue(undefined);
+
+    render(
+      <MemoryRouter>
+        <BodyMakePage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('次回適用予定')).toBeTruthy();
+    expect(
+      screen.getByText('2026年4月9日から自動で切り替わります'),
+    ).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: '予約を取り消す' }));
+    fireEvent.click(screen.getByRole('button', { name: '取り消す' }));
+
+    await waitFor(() => expect(deleteBodyMakePlan).toHaveBeenCalledWith(2));
+    await waitFor(() =>
+      expect(screen.queryByText('次回適用予定')).toBeNull(),
     );
   });
 
