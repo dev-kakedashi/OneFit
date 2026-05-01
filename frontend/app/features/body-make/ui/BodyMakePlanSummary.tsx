@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { COURSE_META, formatPlanDate } from '../content';
 import type { BodyMakePlan } from '../types';
 
@@ -6,6 +7,7 @@ type Props = {
   title: string;
   hint?: string;
   variant?: 'current' | 'upcoming';
+  footer?: ReactNode;
 };
 
 export function BodyMakePlanSummary({
@@ -13,6 +15,7 @@ export function BodyMakePlanSummary({
   title,
   hint,
   variant = 'current',
+  footer,
 }: Props) {
   const isUpcoming = variant === 'upcoming';
 
@@ -26,8 +29,23 @@ export function BodyMakePlanSummary({
     >
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          {hint && <p className="mt-1 text-sm text-gray-500">{hint}</p>}
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium text-gray-500">{title}</p>
+            {isUpcoming && (
+              <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
+                予約済み
+              </span>
+            )}
+          </div>
+          {hint && (
+            <p
+              className={`mt-1 text-sm ${
+                isUpcoming ? 'text-blue-700' : 'text-gray-500'
+              }`}
+            >
+              {hint}
+            </p>
+          )}
 
           <div className="mt-3 flex items-center gap-3">
             <span
@@ -70,16 +88,31 @@ export function BodyMakePlanSummary({
         </div>
 
         <div className="rounded-2xl bg-white/80 p-4">
-          <div className="text-sm text-gray-500">目標期間</div>
-          <div className="mt-2 text-base font-semibold text-gray-900">
-            {formatPlanDate(plan.effectiveFrom)} 〜{' '}
-            {formatPlanDate(plan.targetEndDate)}
+          <div className="text-sm text-gray-500">
+            {isUpcoming ? '適用開始日' : '目標期間'}
           </div>
-          <div className="mt-1 text-sm text-gray-500">
-            {plan.course === 'maintenance'
-              ? '現状維持'
-              : `${plan.targetWeightKg}kg / ${plan.durationDays}日`}
-          </div>
+          {isUpcoming ? (
+            <>
+              <div className="mt-2 text-base font-semibold text-gray-900">
+                {formatPlanDate(plan.effectiveFrom)}
+              </div>
+              <div className="mt-1 text-sm text-gray-500">
+                この日から切り替わります
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="mt-2 text-base font-semibold text-gray-900">
+                {formatPlanDate(plan.effectiveFrom)} 〜{' '}
+                {formatPlanDate(plan.targetEndDate)}
+              </div>
+              <div className="mt-1 text-sm text-gray-500">
+                {plan.course === 'maintenance'
+                  ? '現状維持'
+                  : `${plan.targetWeightKg}kg / ${plan.durationDays}日`}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -87,6 +120,12 @@ export function BodyMakePlanSummary({
         <div className="mt-4 rounded-2xl border border-gray-200 bg-white/80 p-4">
           <div className="text-sm font-medium text-gray-500">メモ</div>
           <p className="mt-2 text-gray-700">{plan.memo}</p>
+        </div>
+      )}
+
+      {footer && (
+        <div className="mt-4 rounded-2xl border border-dashed border-blue-200 bg-blue-50/60 p-4">
+          {footer}
         </div>
       )}
     </section>

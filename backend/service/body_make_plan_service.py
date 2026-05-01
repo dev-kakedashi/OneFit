@@ -155,6 +155,37 @@ class BodyMakePlanService:
             raise ServiceException(BodyMakeErrors.SAVE_FAILED, error=error) from error
 
     @staticmethod
+    def delete_plan(db: Session, body_make_plan_id: int) -> bool:
+        """ボディメイク計画を削除する。
+
+        Args:
+            db: DBセッション。
+            body_make_plan_id: 削除対象ID。
+
+        Returns:
+            削除に成功した場合は ``True``、対象が存在しない場合は ``False``。
+
+        Raises:
+            RepositoryException: DB削除処理で障害が発生した場合。
+            ServiceException: 想定外のサービス層エラーが発生した場合。
+        """
+        try:
+            existing_plan = BodyMakePlanRepository.find_by_id(db, body_make_plan_id)
+            if existing_plan is None:
+                return False
+
+            BodyMakePlanRepository.delete(db, existing_plan)
+            return True
+        except AppException:
+            raise
+        except SQLAlchemyError as error:
+            raise RepositoryException(
+                BodyMakeErrors.DB_DELETE_ERROR, error=error
+            ) from error
+        except Exception as error:
+            raise ServiceException(BodyMakeErrors.DELETE_FAILED, error=error) from error
+
+    @staticmethod
     def _validate_request(request: BodyMakePlanUpsertRequest) -> None:
         """計画入力値の業務バリデーションを行う。
 

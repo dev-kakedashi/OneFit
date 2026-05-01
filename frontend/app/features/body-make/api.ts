@@ -74,3 +74,9 @@ export const saveBodyMakePlan = async (
 
   return mapBodyMakePlanResponse(response);
 };
+
+export const deleteBodyMakePlan = async (bodyMakePlanId: number): Promise<void> => {
+  await request<void>(`/body-make-plans/${bodyMakePlanId}`, {
+    method: 'DELETE',
+  });
+};

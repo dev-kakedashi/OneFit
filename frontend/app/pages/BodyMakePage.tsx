@@ -1,6 +1,6 @@
-import { type FormEvent } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Target } from 'lucide-react';
+import { AlertTriangle, Target, Trash2, X } from 'lucide-react';
 import { formatPlanDate } from '../features/body-make/content';
 import { BodyMakePlanForm } from '../features/body-make/ui/BodyMakePlanForm';
 import { BodyMakePlanSummary } from '../features/body-make/ui/BodyMakePlanSummary';
@@ -22,6 +22,7 @@ export function BodyMakePage() {
     riskAcknowledged,
     applyStartOption,
     effectiveFrom,
+    deletingPlanId,
     preview,
     planSafety,
     openForm,
@@ -33,7 +34,13 @@ export function BodyMakePage() {
     setRiskAcknowledged,
     setApplyStartOption,
     submitPlan,
+    deletePlan,
   } = useBodyMakePage();
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  useEffect(() => {
+    setShowCancelConfirm(false);
+  }, [upcomingPlan?.id]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -100,24 +107,68 @@ export function BodyMakePage() {
       )}
 
       {(currentPlan || upcomingPlan) && (
-        <div
-          className={`grid grid-cols-1 gap-4 ${
-            currentPlan && upcomingPlan ? 'xl:grid-cols-2' : ''
-          }`}
-        >
+        <div className="space-y-4">
           {currentPlan && (
             <BodyMakePlanSummary
               plan={currentPlan}
-              title="現在のプラン"
+              title="現在有効なプラン"
             />
           )}
 
           {upcomingPlan && (
             <BodyMakePlanSummary
               plan={upcomingPlan}
-              title={currentPlan ? '次に切り替わるプラン' : '予定中のプラン'}
-              hint={`${formatPlanDate(upcomingPlan.effectiveFrom)}から適用`}
+              title={currentPlan ? '次回適用予定' : '予定中のプラン'}
+              hint={`${formatPlanDate(upcomingPlan.effectiveFrom)}から自動で切り替わります`}
               variant="upcoming"
+              footer={
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-2 text-sm text-blue-700">
+                    <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+                    <p>
+                      現在のプランとは別に予約されています。誤って設定した場合は取り消せます。
+                    </p>
+                  </div>
+
+                  {showCancelConfirm ? (
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowCancelConfirm(false)}
+                        className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50"
+                      >
+                        <X size={16} />
+                        やめる
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const deleted = await deletePlan(upcomingPlan.id);
+                          if (deleted) {
+                            setShowCancelConfirm(false);
+                          }
+                        }}
+                        disabled={deletingPlanId === upcomingPlan.id}
+                        className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+                      >
+                        <Trash2 size={16} />
+                        {deletingPlanId === upcomingPlan.id
+                          ? '取り消し中...'
+                          : '取り消す'}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowCancelConfirm(true)}
+                      className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50"
+                    >
+                      <Trash2 size={16} />
+                      予約を取り消す
+                    </button>
+                  )}
+                </div>
+              }
             />
           )}
         </div>

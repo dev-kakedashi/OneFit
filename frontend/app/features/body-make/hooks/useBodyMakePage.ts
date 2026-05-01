@@ -3,7 +3,7 @@ import { getBodySettings } from '../../profile/api';
 import { calculateBMR, calculateTDEE } from '../../profile/lib/calculations';
 import { getErrorMessage } from '../../../shared/api/client';
 import { getTodayString, getTomorrowString } from '../../../shared/lib/date';
-import { getBodyMakePlans, saveBodyMakePlan } from '../api';
+import { deleteBodyMakePlan, getBodyMakePlans, saveBodyMakePlan } from '../api';
 import {
   EMPTY_BODY_MAKE_FORM,
   getNextBodyMakeFormForCourse,
@@ -49,6 +49,7 @@ export function useBodyMakePage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [riskAcknowledged, setRiskAcknowledged] = useState(false);
+  const [deletingPlanId, setDeletingPlanId] = useState<number | null>(null);
   const [applyStartOption, setApplyStartOption] =
     useState<BodyMakeApplyStartOption>('today');
 
@@ -248,10 +249,31 @@ export function useBodyMakePage() {
     }
   };
 
+  const deletePlan = async (bodyMakePlanId: number): Promise<boolean> => {
+    try {
+      setDeletingPlanId(bodyMakePlanId);
+      setSaved(false);
+      setError('');
+
+      await deleteBodyMakePlan(bodyMakePlanId);
+
+      const nextPlans = plans.filter((plan) => plan.id !== bodyMakePlanId);
+      setPlans(nextPlans);
+      resetFormFromTimeline(nextPlans);
+      return true;
+    } catch (err) {
+      setError(getErrorMessage(err, 'ボディメイク設定の削除に失敗しました。'));
+      return false;
+    } finally {
+      setDeletingPlanId(null);
+    }
+  };
+
   return {
     profileExists,
     currentPlan,
     upcomingPlan,
+    deletingPlanId,
     hasAnyPlan,
     formData,
     fieldErrors,
@@ -274,5 +296,6 @@ export function useBodyMakePage() {
     setRiskAcknowledged,
     setApplyStartOption,
     submitPlan,
+    deletePlan,
   };
 }

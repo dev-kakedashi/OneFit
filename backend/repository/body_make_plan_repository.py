@@ -64,6 +64,14 @@ class BodyMakePlanRepository:
         )
 
     @staticmethod
+    def find_by_id(db: Session, body_make_plan_id: int) -> BodyMakePlan | None:
+        return (
+            db.query(BodyMakePlan)
+            .filter(BodyMakePlan.id == body_make_plan_id)
+            .first()
+        )
+
+    @staticmethod
     def create(db: Session, plan: BodyMakePlan) -> BodyMakePlan:
         db.add(plan)
         db.commit()
@@ -78,3 +86,8 @@ class BodyMakePlanRepository:
         db.commit()
         db.refresh(existing_plan)
         return existing_plan
+
+    @staticmethod
+    def delete(db: Session, existing_plan: BodyMakePlan) -> None:
+        db.delete(existing_plan)
+        db.commit()

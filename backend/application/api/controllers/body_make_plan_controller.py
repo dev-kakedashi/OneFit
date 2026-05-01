@@ -1,3 +1,5 @@
+from common.errors.errors import BodyMakeErrors
+from common.errors.exceptions import NotFoundException
 from schemas.request.body_make_plan_request import BodyMakePlanUpsertRequest
 from schemas.response.body_make_plan_response import BodyMakePlanResponse
 from service.body_make_plan_service import BodyMakePlanService
@@ -24,3 +26,10 @@ class BodyMakePlanController:
     ) -> BodyMakePlanResponse:
         """ボディメイク計画を新規作成または同日付で更新する。"""
         return BodyMakePlanService.upsert_plan(db, request)
+
+    @staticmethod
+    def delete_plan(db: Session, body_make_plan_id: int) -> None:
+        """ボディメイク計画を削除する。"""
+        deleted = BodyMakePlanService.delete_plan(db, body_make_plan_id)
+        if not deleted:
+            raise NotFoundException(BodyMakeErrors.NOT_FOUND_FOR_DELETE)

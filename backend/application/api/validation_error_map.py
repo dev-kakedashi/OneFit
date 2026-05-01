@@ -24,6 +24,11 @@ VALIDATION_ERROR_MAP = {
     ("PUT", "/body-make-plans", "effective_from"): BodyMakeErrors.INVALID_EFFECTIVE_FROM,
     ("PUT", "/body-make-plans", "target_weight_kg"): BodyMakeErrors.INVALID_TARGET_WEIGHT_KG,
     ("PUT", "/body-make-plans", "duration_days"): BodyMakeErrors.INVALID_DURATION_DAYS,
+    (
+        "DELETE",
+        "/body-make-plans/{body_make_plan_id}",
+        "body_make_plan_id",
+    ): BodyMakeErrors.INVALID_ID_FOR_DELETE,
     ("GET", "/body-weight-logs", "date_from"): BodyWeightErrors.INVALID_DATE_FROM,
     ("GET", "/body-weight-logs", "date_to"): BodyWeightErrors.INVALID_DATE_TO,
     ("GET", "/body-weight-logs/latest", "date"): BodyWeightErrors.INVALID_DATE,
