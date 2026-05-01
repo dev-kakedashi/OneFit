@@ -1,7 +1,8 @@
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 
 from common.errors.errors import DashboardErrors
 from common.errors.exceptions import AppException, RepositoryException, ServiceException
+from repository.body_weight_log_repository import BodyWeightLogRepository
 from repository.body_make_plan_repository import BodyMakePlanRepository
 from repository.meal_repository import MealRepository
 from repository.user_repository import UserRepository
@@ -10,8 +11,10 @@ from repository.workout_repository import WorkoutRepository
 from schemas.response.dashboard_response import (
     DailySummaryResponse,
     DashboardDailySummaryResponse,
+    DashboardPeriodSummaryResponse,
     DashboardMonthlyMarkerResponse,
     DashboardMonthlyMarkersResponse,
+    PeriodSummaryResponse,
 )
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -19,6 +22,13 @@ from sqlalchemy.orm import Session
 
 class DashboardService:
     """ダッシュボードの日次サマリーを集計するサービス。"""
+
+    @staticmethod
+    def _get_week_range(target_date: date) -> tuple[date, date]:
+        """対象日を含む月曜始まり・日曜終わりの週範囲を返す。"""
+        week_start_date = target_date - timedelta(days=target_date.weekday())
+        week_end_date = week_start_date + timedelta(days=6)
+        return week_start_date, week_end_date
 
     @staticmethod
     def get_daily_summary(
@@ -99,7 +109,8 @@ class DashboardService:
                     daily_calorie_adjustment=daily_calorie_adjustment,
                     intake_calories=intake_calories,
                     burned_calories=burned_calories,
-                    calorie_balance=intake_calories - burned_calories - target_calories,
+                    # 画面上は「食べられる残り」を示したいので、運動量ではなく摂取目標との差分で返す。
+                    calorie_balance=target_calories - intake_calories,
                     target_water_intake_ml=target_water_intake_ml,
                     water_intake_ml=water_intake_ml,
                     remaining_water_intake_ml=remaining_water_intake_ml,
@@ -113,6 +124,117 @@ class DashboardService:
                 )
 
             return DashboardDailySummaryResponse(summary=summary)
+        except AppException:
+            raise
+        except SQLAlchemyError as error:
+            raise RepositoryException(
+                DashboardErrors.DB_FETCH_ERROR, error=error
+            ) from error
+        except Exception as error:
+            raise ServiceException(DashboardErrors.FETCH_FAILED, error=error) from error
+
+    @staticmethod
+    def get_period_summary(
+        db: Session,
+        target_date: date,
+    ) -> DashboardPeriodSummaryResponse:
+        """指定日を含む週次集計結果を返す。"""
+        try:
+            window_start_date, window_end_date = DashboardService._get_week_range(
+                target_date
+            )
+            start_datetime = datetime.combine(window_start_date, time.min)
+            end_datetime = datetime.combine(window_end_date + timedelta(days=1), time.min)
+
+            meals = MealRepository.find_in_range(db, start_datetime, end_datetime)
+            workouts = WorkoutRepository.find_in_range(db, start_datetime, end_datetime)
+            water_logs = WaterRepository.find_in_range(db, start_datetime, end_datetime)
+            user = UserRepository.get_first(db)
+
+            body_weight_logs = []
+            body_weight_reference_log = None
+            calorie_target_total = None
+            water_target_total_ml = None
+            if user is not None:
+                calorie_target_total = 0
+                for current_offset in range(7):
+                    current_date = window_start_date + timedelta(days=current_offset)
+                    plan = BodyMakePlanRepository.find_effective_on_date(
+                        db=db,
+                        user_id=user.id,
+                        target_date=current_date,
+                    )
+                    calorie_target_total += (
+                        plan.target_calories
+                        if plan is not None
+                        else int(user.required_calories)
+                    )
+
+                if user.daily_water_goal_ml is not None:
+                    water_target_total_ml = user.daily_water_goal_ml * 7
+
+                body_weight_reference_log = BodyWeightLogRepository.find_latest_on_or_before(
+                    db=db,
+                    user_id=user.id,
+                    target_date=window_start_date,
+                )
+                body_weight_logs = BodyWeightLogRepository.find_by_date_range(
+                    db=db,
+                    user_id=user.id,
+                    date_from=window_start_date,
+                    date_to=window_end_date,
+                )
+
+            meal_dates = {meal.eaten_at.date() for meal in meals}
+            workout_dates = {workout.worked_out_at.date() for workout in workouts}
+            water_dates = {water_log.drank_at.date() for water_log in water_logs}
+            body_weight_dates = {
+                body_weight_log.measured_on for body_weight_log in body_weight_logs
+            }
+
+            sorted_body_weight_logs = sorted(
+                body_weight_logs,
+                key=lambda log: (log.measured_on, log.id),
+            )
+            body_weight_start_kg = None
+            body_weight_end_kg = None
+            body_weight_change_kg = None
+            if sorted_body_weight_logs:
+                body_weight_start_kg = (
+                    body_weight_reference_log.weight_kg
+                    if body_weight_reference_log is not None
+                    else sorted_body_weight_logs[0].weight_kg
+                )
+                body_weight_end_kg = sorted_body_weight_logs[-1].weight_kg
+                body_weight_change_kg = body_weight_end_kg - body_weight_start_kg
+
+            summary = PeriodSummaryResponse(
+                window_start_date=window_start_date,
+                window_end_date=window_end_date,
+                window_days=7,
+                calorie_target_total=calorie_target_total,
+                intake_calories=sum(meal.calories for meal in meals),
+                burned_calories=sum(workout.burned_calories for workout in workouts),
+                water_target_total_ml=water_target_total_ml,
+                water_intake_ml=sum(water_log.amount_ml for water_log in water_logs),
+                meal_log_count=len(meals),
+                meal_day_count=len(meal_dates),
+                workout_log_count=len(workouts),
+                workout_day_count=len(workout_dates),
+                water_log_count=len(water_logs),
+                water_day_count=len(water_dates),
+                body_weight_log_count=len(body_weight_logs),
+                body_weight_day_count=len(body_weight_dates),
+                recorded_day_count=len(
+                    meal_dates | workout_dates | water_dates | body_weight_dates
+                ),
+                body_weight_start_kg=body_weight_start_kg,
+                body_weight_end_kg=body_weight_end_kg,
+                body_weight_change_kg=body_weight_change_kg,
+                profile_registered=user is not None,
+            )
+
+            return DashboardPeriodSummaryResponse(summary=summary)
         except AppException:
             raise
         except SQLAlchemyError as error:

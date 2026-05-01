@@ -5,6 +5,7 @@ from db.session import get_db
 from fastapi import APIRouter, Depends, Query
 from schemas.response.dashboard_response import (
     DashboardDailySummaryResponse,
+    DashboardPeriodSummaryResponse,
     DashboardMonthlyMarkersResponse,
 )
 from sqlalchemy.orm import Session
@@ -23,6 +24,19 @@ def get_daily_summary(
     """指定日のダッシュボード集計結果を取得する。"""
 
     return DashboardController.get_daily_summary(db, target_date)
+
+
+@router.get(
+    "/dashboard/period-summary",
+    response_model=DashboardPeriodSummaryResponse,
+)
+def get_period_summary(
+    target_date: date = Query(..., alias="date"),
+    db: Session = Depends(get_db),
+) -> DashboardPeriodSummaryResponse:
+    """指定日を含む週次集計結果を取得する。"""
+
+    return DashboardController.get_period_summary(db, target_date)
 
 
 @router.get(

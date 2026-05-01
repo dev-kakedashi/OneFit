@@ -19,6 +19,21 @@ export const toDateAtMidnight = (value: string | Date): Date => {
   return new Date(`${value}T00:00:00`);
 };
 
+export const getWeekRange = (
+  value: string | Date,
+): { startDate: Date; endDate: Date } => {
+  const startDate = toDateAtMidnight(value);
+  const weekday = startDate.getDay();
+  const offset = weekday === 0 ? -6 : 1 - weekday;
+
+  startDate.setDate(startDate.getDate() + offset);
+
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + 6);
+
+  return { startDate, endDate };
+};
+
 export const getMonthStart = (value: string | Date): Date => {
   const date = toDateAtMidnight(value);
   return new Date(date.getFullYear(), date.getMonth(), 1);

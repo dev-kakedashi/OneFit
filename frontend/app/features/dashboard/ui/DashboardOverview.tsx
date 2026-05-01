@@ -50,13 +50,15 @@ export function DashboardOverview({
   );
 
   const calorieGoal = summary.targetCalories ?? 0;
-  const netCalories = summary.intakeCalories - summary.burnedCalories;
   const remainingCalories =
-    summary.calorieBalance === null ? 0 : -summary.calorieBalance;
+    summary.calorieBalance === null ? 0 : summary.calorieBalance;
   const progressPercentage =
-    calorieGoal > 0 ? Math.round((netCalories / calorieGoal) * 100) : 0;
+    calorieGoal > 0 ? Math.round((summary.intakeCalories / calorieGoal) * 100) : 0;
   const progressWidth =
-    calorieGoal > 0 ? Math.min((netCalories / calorieGoal) * 100, 100) : 0;
+    calorieGoal > 0
+      ? Math.min((summary.intakeCalories / calorieGoal) * 100, 100)
+      : 0;
+  const isOverGoal = calorieGoal > 0 && summary.intakeCalories > calorieGoal;
 
   const balanceDescription =
     remainingCalories > 0
@@ -146,13 +148,12 @@ export function DashboardOverview({
           </div>
 
           <div className="mt-3 rounded-2xl bg-white/10 p-4">
-            <div className="text-xs font-medium text-slate-300">収支</div>
+            <div className="text-xs font-medium text-slate-300">食事予算</div>
             <div className="mt-2 flex items-center gap-2">
               {renderBalanceIcon('text-white', 22)}
               <div
                 className={`text-2xl font-semibold ${getBalanceColor('text-white')}`}
               >
-                {remainingCalories > 0 ? '+' : ''}
                 {remainingCalories}
                 <span className="ml-1 text-sm text-slate-300">kcal</span>
               </div>
@@ -195,11 +196,10 @@ export function DashboardOverview({
           </div>
 
           <div className="rounded-lg bg-white p-6 shadow">
-            <div className="mb-1 text-sm text-gray-600">カロリー収支</div>
+            <div className="mb-1 text-sm text-gray-600">残り摂取可能カロリー</div>
             <div className="flex items-center gap-2">
               {renderBalanceIcon()}
               <div className={`text-3xl font-bold ${getBalanceColor()}`}>
-                {remainingCalories > 0 ? '+' : ''}
                 {remainingCalories}
                 <span className="ml-1 text-lg text-gray-600">kcal</span>
               </div>
@@ -208,17 +208,21 @@ export function DashboardOverview({
           </div>
         </div>
 
+        <div className="mt-2 text-xs text-gray-500">
+          運動による消費は参考値として表示しています。食事予算には自動で加算しません。
+        </div>
+
         <div className="rounded-lg bg-white p-6 shadow">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">
-              {selectedDateLabel} の進捗状況
+              {selectedDateLabel} の食事進捗
             </span>
             <span className="text-sm text-gray-600">{progressPercentage}%</span>
           </div>
           <div className="h-4 w-full overflow-hidden rounded-full bg-gray-200">
             <div
               className={`h-full transition-all ${
-                netCalories > calorieGoal ? 'bg-red-500' : 'bg-blue-500'
+                isOverGoal ? 'bg-red-500' : 'bg-blue-500'
               }`}
               style={{ width: `${Math.max(0, progressWidth)}%` }}
             />

@@ -7,6 +7,7 @@ import {
   getMonthStart,
   toDateAtMidnight,
 } from '../features/dashboard/lib/calendar';
+import { DashboardCrossSummary } from '../features/dashboard/ui/DashboardCrossSummary';
 import { DashboardCalendar } from '../features/dashboard/ui/DashboardCalendar';
 import { DashboardOverview } from '../features/dashboard/ui/DashboardOverview';
 import { useLatestBodyWeightLog } from '../features/body-weight/hooks/useLatestBodyWeightLog';
@@ -114,11 +115,13 @@ export function DashboardPage() {
         </div>
       )}
 
+      <DashboardCrossSummary todayString={todayString} />
+
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">ダッシュボード</h2>
           <p className="mt-1 text-sm text-gray-600">
-            カレンダーから日付を切り替えて、その日の食事と運動バランスを確認できます。
+            週間サマリーで全体の流れを確認しながら、カレンダーから日付を切り替えて記録を追えます。
           </p>
         </div>
         <div className="rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">

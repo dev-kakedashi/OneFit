@@ -22,6 +22,22 @@ class WaterRepository:
         return db.query(WaterLog).filter(WaterLog.id == water_log_id).first()
 
     @staticmethod
+    def find_in_range(
+        db: Session,
+        start_datetime: datetime,
+        end_datetime: datetime,
+    ) -> list[WaterLog]:
+        return (
+            db.query(WaterLog)
+            .filter(
+                WaterLog.drank_at >= start_datetime,
+                WaterLog.drank_at < end_datetime,
+            )
+            .order_by(WaterLog.drank_at.asc())
+            .all()
+        )
+
+    @staticmethod
     def create(db: Session, water_log: WaterLog) -> WaterLog:
         db.add(water_log)
         db.commit()

@@ -2,6 +2,7 @@ from datetime import date
 
 from schemas.response.dashboard_response import (
     DashboardDailySummaryResponse,
+    DashboardPeriodSummaryResponse,
     DashboardMonthlyMarkersResponse,
 )
 from service.dashboard_service import DashboardService
@@ -19,6 +20,15 @@ class DashboardController:
         """指定日のダッシュボード集計結果を取得する。"""
 
         return DashboardService.get_daily_summary(db, target_date)
+
+    @staticmethod
+    def get_period_summary(
+        db: Session,
+        target_date: date,
+    ) -> DashboardPeriodSummaryResponse:
+        """指定日を含む週次集計結果を取得する。"""
+
+        return DashboardService.get_period_summary(db, target_date)
 
     @staticmethod
     def get_monthly_markers(
